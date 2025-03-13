@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="常见分布式应用系统设计图解">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常见分布式应用系统设计图解">
+<meta property="og:url" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="常见分布式应用系统设计图解">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image1_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image2_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image3_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image4_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image4_2.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image5_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image6_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image7_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image8_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image9_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image10_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image11_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image12_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image13_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image14_1.png">
+<meta property="og:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image15_1.png">
+<meta property="article:published_time" content="2024-11-09T14:28:58.000Z">
+<meta property="article:modified_time" content="2024-11-24T13:27:23.470Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="收集文章">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image1_1.png">
+
+<link rel="canonical" href="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>常见分布式应用系统设计图解 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          常见分布式应用系统设计图解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-11-09 22:28:58" itemprop="dateCreated datePublished" datetime="2024-11-09T22:28:58+08:00">2024-11-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-11-24 21:27:23" itemprop="dateModified" datetime="2024-11-24T21:27:23+08:00">2024-11-24</time>
+              </span>
+
+          
+            <div class="post-description">常见分布式应用系统设计图解</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1-即时消息系统"><a href="#1-即时消息系统" class="headerlink" title="1. 即时消息系统"></a>1. 即时消息系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6260">https://www.raychase.net/6260</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>在自己学习各种各样软件系统，特别是分布式系统的过程中，我做了一些笔记，有许多常见的、经典的系统，是非常值得学习和总结的。它们数量不算多，但具有典型意义，可能这样的系统也就十几个。</p>
+<p>我在回顾这些笔记的时候发现，有时候一张简单的图，包含最核心的几个设计，就可以很大程度地帮助理解和记忆。所以我想把这些笔记和图解的结合通过文章的形式发出来，预计每篇文章都很短，基本上一张图，加上一点说明性的文字。</p>
+<p>Disclaimer：这些都来自我自己的阅读和理解，肯定有着相当的改变和简化，因此它并不代表任何系统实际的样子。</p>
+<p>今天是第一篇，即时消息系统，但是基本上好多即时通讯软件都属于这一类，比如微信，比如 QQ，比如 Facebook Messenger，比如 WhatsApp。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image1_1.png"></p>
+<ul>
+<li>用户发送消息，直接发给 Chat Service，它会做少量的处理并持久化，然后放到基于 channel 的队列中，每一个对话（thread）都会有一个 channel，这个过程中，它并不关心这个对话有多少人参与（支持群聊）。</li>
+<li>队列有两类消费者，一类是 Message Service 用来服务在线用户。由于单台机器和客户端的连接数量有限（比如小于 2^16&#x3D;65536），因此 Message Service 需要有很多机器，根据用户的 id 来 sharding，它们去订阅自己感兴趣的频道，有新的消息就发送给用户。</li>
+<li>Message Service 获取客户端的心跳，保持来自客户端的连接（long polling 或者 socket）为了实时性肯定要用 push 模型。因此它知道用户的当前在线状态，也知道最后一条发送成功消息的时间戳（状态）。这个状态可以用于决定用户离线时消息是否要通过其它方式通知用户。</li>
+<li>还有一类是 Notification Service 用来发离线通知。</li>
+<li>Chat Service 有两个职责，一个是处理发消息的请求，一个是接纳读取历史消息的请求，这两个功能可以分成两个组件，也可以一个组件，我放在一起了。</li>
+<li>右侧的消息数据库，RDB 往往不太适合，因为消息数量太大，对于一组对话（thread）的展示，需要找到该对话 N 条最近的记录，行数据库效率较低，可以考虑列数据库，比如 HBase。这种方式下，同一 thread 下的消息都是按时序存放在一起的，读的效率非常高，写因为基本是 append，也很方便。</li>
+<li>用户数据的存储，可以使用 RDB，也可以使用 KV 数据库。 这里面存放的数据库表包括：用户表；对话表；用户对话关联表：二者是 M:N 的关系，并且每个用户都可以有对于特定对话的设置，例如设置对话中的昵称，是否屏蔽消息通知等等。</li>
+<li>对于图中基于 Channel 的队列，把数据 fanout 给下游，它有几个作用，一个是解耦，把消息发送和消息接收分离开，消息发送者可能只管把消息发到群里，但是并不关心这个群应该有几个用户得到通知；第二个是缓冲，无论是为离线用户服务的 Notification Service，还是为在线用户服务的 Message Service，它们消费数据的速率是无法确定的。</li>
+<li>对于用户上线、下线的实现，其实也类似，上线、下线的事件可以推送到一个特定的 Channel 里面。用户的好友，也就是感兴趣的 Notification Service 的个体去订阅消息；还有一种思路是把状态更新到用户表里面，这样所有人都可以查询得到，这后一种方式适合非好友也要查看用户状态的情况。上、下线需要保留缓冲时间，容许一定状态的延迟，没必要，也不应过于实时。</li>
+</ul>
+<h1 id="2-Feed-流系统"><a href="#2-Feed-流系统" class="headerlink" title="2. Feed 流系统"></a>2. Feed 流系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6269">https://www.raychase.net/6269</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>今天记录 Feed 流系统的设计学习笔记，Feed 流常见系统包括 Twitter、微博、Instagram 和抖音等等，它们的特点是，每个用户都是内容创作者，每个用户也都是内容消费者，每个用户看到的内容都是不同的，它取决于用户所关注的用户列表，再结合时间线（有时还包括优先级）将这些用户的最新 feed 聚合，并以流的方式展示出来。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image2_1.png"></p>
+<ul>
+<li>Feed 流系统中，有两种常见的模式，一种是 push，一种是 pull。基本上，对于用户的 “被关注用户”（粉丝）可能远大于 “关注用户” 的系统，比如 Twitter，pull model 是必选，push 是可选；反之，特别是对于一些用户关系要求必须双向的，比如朋友圈，往往不会有很多的 “粉丝”，那就可以将 push 作为主要模式。无论如何，pull 和 push 有利必有弊，如果结合使用，可以根据场景来选择，看似很美，可又会增加系统的复杂性。这里按照二者结合的设计来叙述。</li>
+<li>这里提给 push 和 pull 各提一个经典问题：<ul>
+<li>第一个问题是 push 模型下，由于粉丝众多，推文占用容量过大的问题，一种解决思路是在粉丝的时间线中只存储推文 id，但是这样的话在聚合的时候需要一次额外的根据推文 id 去获取推文的 I&#x2F;O（但是可以通过缓存优化）；另一种解决思路是只给活跃用户 push。</li>
+<li>第二个问题是 pull 模型下，突然某个大 V 的某一话题活了起来，大量的用户访问该推文，导致所在机器顶不住了（这也是新浪微博挂掉的常见原因）。这个也没有太好的解决办法，可以考虑对于特别火爆的推文拉出专门的一层缓存来扛流量，另外要有流控，丢掉部分请求，尽最大能力服务。</li>
+</ul>
+</li>
+<li>首先，用户本身的数据，存放在 User DB 里，和很多其它系统一样，它可以是一个关系数据库。但是用户的关联关系，可以单独存放，它可以使用关系数据库，也可以使用 Graph DB。</li>
+<li>右侧的 Tweet Storage：用户和帖子（推文）的关联数据，数据量会比较大，可以选择 Redis 这样的 KV 数据库；而推文本身，也可以使用 KV 数据库，或者使用 MongoDB 这一类文档数据库，以适应弱结构化文本为主的数据。但是，Twitter 和微博都使用了 MySQL 来存放这类数据，并且 Twitter 给 MySQL 做了相当的优化，这里面不只有技术原因，更多的还有历史原因。</li>
+<li>关于对推文的 Sharding，这是一个 Feed 系统的核心话题。<ul>
+<li>一种方式是根据时间的范围来划分，这也是 Twitter 早期的做法，这种做法有一个严重的问题，就是老的推文没有人看，而新推文则火得不得了，因此机器的 load 严重不均。</li>
+<li>第二种方式是根据推文的 id 来做简单 hash，这种方式最大的问题是一个人的推文可能分散到任何一台机器上，为了找这个人的推文要去所有的机器上查询并聚合（既包括网络 I&#x2F;O，也包括磁盘 I&#x2F;O），这无疑是过于浪费了。</li>
+<li>第三种方式是根据用户 id 来做 hash，保证某一个特定用户的推文只存储在同一台机器上，但这个方式有两个问题，（1）有时候某特定几个用户会火，导致 load 不均，这种情况需要用良好设计的 Cache 来缓和；（2）某些用户发推多而某些用户少，因此时间长了 shards 的容量使用差异可能很大，这需要一个改进的找 shard 的路由算法。</li>
+</ul>
+</li>
+<li>Media Storage，用于存放图像等媒体数据，这可以是一个 “单纯” 的分布式文件系统，比如 HDFS。</li>
+<li>用户推文的时候，根据用户所应对的策略，如果需要 fan out 推文的 id 到粉丝的时间线数据库中，就要把这个事件进 queue，由于它是异步模型，这一步可能会有不同程度的延迟。</li>
+<li>在用户读取的时候，缓存是非常重要的，考虑到需要的容量巨大，为了增加命中率，减少冗余的缓存信息，可以使用集中式缓存集群。</li>
+<li>Aggregation Service 是用来从多个存储节点中为某个用户拉取数据（pull 模型），合并时间线，并返回的。为了提高效率，这里是多个并行拉取，再聚合的。这些数据可能是即时拉取的（pull 模型），也可能是已经，或者部分已经在之前的 Fan-out 流程中写入存储而准备好了的（push 模型）。</li>
+</ul>
+<h1 id="3-Top-K-系统"><a href="#3-Top-K-系统" class="headerlink" title="3. Top K 系统"></a>3. Top K 系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6275">https://www.raychase.net/6275</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>“ Top K 系统 ” 是非常常见的一种子系统，基本上，就是从全量巨大的统计数据中，筛选出数值最大的 K 个来并按序展示。这样的筛选可以是全时间内的，也可以是最近某一段时间内的；可以是全分类的，也可以是某个特定分类的。</p>
+<p>具体来说，像 Twitter 的 Trending Topic，微博热搜，视频网站的点击排行，下载排行（可以是日榜、月榜、总榜）等等。这样的系统，在统计数据非常大（heavy hitters）的时候，其中的挑战性在于两个：</p>
+<ul>
+<li>无法简单地在单台机器的内存中进行目标 id -&gt; count 计数的简单映射，因为数据量太大，内存放不下。</li>
+<li>无法用实时的方式高效地显示出动态变化的 Top K 列表来。</li>
+</ul>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image3_1.png"></p>
+<ul>
+<li>上图包含了两个思路，一个是实时排行（榜单），通过 Count-min Sketch 实现，快速，但是不够精确（或者使用 Lossy Counting）；另一个是周期性排行，通过异步的 MR 数据处理实现，数据上看比较准确，但是处理是异步的，实时性差。</li>
+<li>第一个思路方面，统计要尽可能实时。为了提高处理效率，用户的话题引用可以直接进入 filter 进行处理。在我读到的某些材料中，类似系统这一步也有通过异步批量的方式进入队列并处理的。不过在这里，我还是保留了比较简单的一种实现。</li>
+<li>接着经过简单的 filtering 和 parsing 去掉不关心的数据，比如对于微博的话题来说，某一些词是小词，或者是我们不希望成为话题的词；而某一些近似词可以合并。完成以后数据有两个去向，一个是右侧的即时统计，一个是持久化到下方的数据库中（这个数据库可以是 Redis 这样的 KV 数据库）。</li>
+<li>对于每一个词，经过 hash 以后，到 Count-min Sketch 表格中累积计数，并根据计数到当前大小为 K 的最小堆（这个最小堆用来存放一定时间内累计的前 K 大条目）中寻找是否比堆顶更大，如果是，就入堆并移除原堆顶，从而保持堆的大小为 K。由于 Count-min Sketch 这个堆的大小都是确定并可控的，这样的统计就可以在单个节点上完成了。</li>
+<li>如果需要的即时统计数据不是 “总榜”，而是最近一段时间的 “趋势榜”，那就可以借助 Ring Buffer——比如我们只关心最近一小时的趋势，就可以把一小时划分为 ring 上的 60 个区间，每个区间使用 Count-min Sketch 甚至简单的 Map 分别统计，趋势榜每次可聚合这 60 个区间得出 top K；每过一分钟都覆写最老的那一个区间的数据，从而保证 ring 上的数据始终是最近一小时的。</li>
+<li>第二个思路方面，统计不实时，但相对精确。对于这些持久化的数据，由 MR 的 job 定期执行来处理，并更新结果到数据库中。</li>
+<li>读取数据的时候，根据需要可以读取即时统计或者异步计算得到的统计数据，数据可以在外部缓存。</li>
+</ul>
+<h1 id="4-输入建议系统"><a href="#4-输入建议系统" class="headerlink" title="4. 输入建议系统"></a>4. 输入建议系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6299">https://www.raychase.net/6299</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>输入建议系统，指的就是 “typeahead”，比如 Google 搜索，输入一个单词的前几个字母，后面最常用的几个搜索词会被联想出来。有时，它也需要具备一定程度的字符拼写错误自动更正能力。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image4_1.png"></p>
+<p>比如上面这张截图，我输入了 “goog”，在输入框的下方列出了最常见的几个以 goog 开头的搜索短语。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image4_2.png"></p>
+<ul>
+<li>这个功能可以说不是搜索系统的核心功能，而且要求响应一定要非常迅速，考虑到无法避免的网络延迟，我们希望服务端的处理越快越好。响应数据不用非常准确，但是延迟响应肯定是一个糟糕的结果。所以我们希望服务端的处理的数据尽量都在内存中，几乎不需要怎么读取磁盘，整个过程也要保持简洁。</li>
+<li>用户侧的浏览器方面，有这么几件事情比较重要：缓存之前的提示数据；<ul>
+<li>数据不一定只从服务端返回，浏览器也有本地的历史查询记录（比如 Cookie），提示列表可以是二者的并集；</li>
+<li>用户打开页面或者选中焦点框就要开始建立连接，从而在输入后节省连接建立时间；</li>
+<li>用户每输入一个字符，不要马上去询问服务器，而是等 100 毫秒，没有接着敲字符再发起请求；</li>
+<li>由于无法预料响应到达后是否输入串已经发生了变化，因此响应到达后要比较当前用户输入串是否是查询串，只有二者一致才要显示返回结果。</li>
+</ul>
+</li>
+<li>为了尽量减少延迟，又考虑到一致性要求不高，CDN 是一个很好的选择。新生成的 Trie 树被推送到离用户较近的节点去。</li>
+<li>再来看服务端，大致分为三个步骤。</li>
+<li>第一个步骤是图中上面一行，用户的搜索数据或搜索日志，被异步系统处理并计数，写入右侧的数据库中，这个数据库可以考虑选用列数据库（比如 HBase），以提高批量处理的效率，主键可以是一个按序的时间段，以便后续处理。不需要统计全部搜索数据——可以是一个采样以降低数据规模，提高效率；也可以设置一个阈值，如果搜索次数低于阈值就忽略。</li>
+<li>第二个步骤是图中第二行靠右侧的部分，每隔一定时间，根据统计数据生成 Trie 树，并持久化到版本化的文件中。为什么用 Trie？因为对于输入建议这种需求，基本就是一种 “前缀查询”，经过压缩的 Trie 树查询的效率很高（其实 HashMap 也可以，但是对于 key，也就是输入前缀的空间占用非常浪费）。</li>
+<li>第三部分，考虑到树比较巨大，可以分布在若干个节点上，它的更新异步进行，即整棵树构筑完毕以后整体替换，而不是操纵正在被使用的单个节点。</li>
+<li>具体哪一些节点来负责树的哪一部分，这是一个策略问题，它由 Routing Manager 来决定，但是目标是尽量让请求均匀地分摊。比如前缀为 a<del>bc 的去集群 Partial Trie A，前缀为 bd</del>d 的去集群 Partial Trie B……这部分可以结合 Zookeeper 来实现。</li>
+<li>请求到来的时候，先到达 Typeahead Gateway，而具体请求分发的策略要根据 Routing Manager 来定，这个策略不需要每次都现询问，而可以本地缓存，定期更新。</li>
+</ul>
+<h1 id="5-Proximity-系统"><a href="#5-Proximity-系统" class="headerlink" title="5. Proximity 系统"></a>5. Proximity 系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6312">https://www.raychase.net/6312</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>今天是介绍 Proximity 系统，我不知道怎么翻译恰当，就保留英文原文。虽说词义上说的只是 “相似度”，但多数说的是 “地理” 上的相似度。因此，这一类系统多为基于地理上的邻近程度来提供服务的，核心功能就是要找到某人、物或地点地理位置附近的其它人、物或地点。比如像打车系统 Uber、滴滴的叫车功能，比如像大众点评、Yelp 或者百度地图、Google Map 中寻找附近餐馆的功能，或者是 “ 附近的人” 之类基于地理信息的 app 上的小功能。</p>
+<p>从读写的角度看，基本上这类功能都要存储位置信息，基于位置的 “寻找” 是很核心的需求，因此读往往比较重。但是写的话差异就比较大了，像有一些应用，比如打车系统，需要司机和乘客双方匹配，而且双方又往往在地理位置上的移动中，因此每几秒钟就要汇报并记录一下位置，有非常重的写；但是像 “寻找附近餐馆” 这样功能，匹配双方至少有一方基本上地理位置是固定的，往往就不是这样了。</p>
+<p>在这里我们选择其中相对较复杂的打车系统来讨论。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image5_1.png"></p>
+<p>大的功能上面，它包括两个部分。一个是单纯的位置汇报，比如每 10 秒钟，司机和乘客都要汇报自己的当前位置（经度和纬度），这也是图中最上面和最下面的两个横着的箭头，汇报给 Location Service。<br>第二个是这个打车的流程。乘客发起一个打车请求，Ride Service 收到以后，去 Location Service 找一个范围内的 available 的车，然后按照根据距离的顺序，通过 Notification Service 向司机发送通知。为了提高效率，可以同时发送给几个司机，让司机抢单。司机收到并接受请求以后，Ride Service 让 Location Service 更新司机的状态为 unavailable， 再通过 Notification Service 告知用户正式匹配到的车。如果找不到司机，扩大搜索范围去 Location Service 继续寻找。<br>这里司机也好，乘客也好，和 Notification Service 的连接，使用 push 模型，可以通过 long poll 或者 socket 连接实现。<br>打车的信息存放在 Ride DB 里面，这个数据库可以是一个 RDB，也可以是一个 KV 的数据库。<br>Location Service 的实现是一个 Proximity 系统的核心。在这里它主要要做两件事，一个是接受司机和乘客位置的汇报并记录；一个是接受 Ride Service 的请求，返回一定范围内匹配到的 available 的司机。<br>这个匹配机制有大致有这样两种实现方式（之前在这篇文章中都提到过）：<br>一种是使用 QuadTree，就是说把地图上任意一个区域都划分成四个子区域，每个区域如果节点超过一个阈值，就继续划分。<br>第二种是使用 Geohash，本质上就是降维。降维的原因是，一维的数据管理和查找起来要容易得多，二维的数据要做到高效查找比较困难。我们的查找条件是基于经纬度的，而不是一个单值；我们存储的数据也都是一个个经纬度形成的点，因此，Geohash 的办法就是把查找条件和存储的数据全部都变成一个个单值，这样就可以利用我们熟悉的一维数组区域查找的技术来高效实现（比如把它索引化，而索引化其实是可以通过 B+树来实现的，因此 Geohash 的查询时间复杂度和 QuadTree 是可以在同一个数量级的，都是 log n）。<br>由于写的频率太高，可能导致上面的树（无论哪一种）出现节点分裂和合并过于频繁，造成性能和资源竞争的压力，因此可以做两个优化：<br>这个 location 数据的写入，可以不非常实时，比如对于没有处于接单状态的司机，可以合并几次写入到一次再写入。<br>节点的分裂还是合并设置阈值，并且分裂阈值要大于合并阈值，阈值以内不发生节点变化。比如说，一个大节点的下一层，同样数量的司机，可能分布在 x 个子节点，也可能分布在 x+1 个子节点。</p>
+<h1 id="6-流媒体系统"><a href="#6-流媒体系统" class="headerlink" title="6. 流媒体系统"></a>6. 流媒体系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6329">https://www.raychase.net/6329</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>流媒体系统，主要是视频流媒体系统。比如 YouTube，比如 Netflix，比如爱奇艺，还有优酷。再一个许多大型的社交平台上，几乎是一定要内嵌流媒体服务的，以支持用户上传视频类型的内容。</p>
+<p>这类系统我们需要考虑的不只有单纯视频文件的存储和传输，还有文件的编码、解码，和视频截图（比如用作 thumbnail）的生成等等基本功能。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image6_1.png"></p>
+<p>视频文件上传、编码、截图这个过程可以说非常消耗资源，因此视频流媒体系统的处理往往和简单的图片分享系统不一样，它的处理要求异步进行。而异步系统就一定要有队列。<br>图中上半部分，用户向 Web Server 发起一个视频上传的请求，实际视频上传通过 Uploading Server 来传到视频存储中。元信息放在 Metadata 数据库中，上传完成后入队列一个要求处理视频的事件。事件经过异步系统处理，包括去重、编码和截图等操作，更新后的视频存放会视频存储系统中，而图片存放到另一个图片的存储系统。编码部分可以考虑编码为多个码率的文件，以满足播放时对于不同网络环境的需求。<br>视频的存储方面，由于视频可能较大，可以选择像 HDFS 这样基于 block 的分布式文件系统。既为了可靠性，又为了提高播放（读取）的性能，引入 replication，也可以为流媒体服务器引入专门的缓存。二者比较起来，磁盘上的 replication 更为重要，因为通常用于缓存的内存的价格比较贵。<br>截图和 thumbnail 这类图片，一般都是小图片，通常读压力比较大，再一个考虑到同一个视频的不同时间点的多张截图往往是需要一起读取，为了提高效率可以使用列数据库。还有一种方式是把同一个视频的多张小的截图合并在一张大图里面存起来（客户端（浏览器）得到这张大图以后再切分成多张小图来提供给用户），如果这样存储的话，也可以选择一些能够容纳文件大小的 KV 数据库。注意有的存储系统带有分块要求，如果文件很小而分块很大，那么就有空间浪费的情况（当然像 Bigtable 这种可以将多个文件的数据合并存储到同一个 block 中，就没有这个问题）。<br>下半部分，用户需要播放视频的时候，客户端和流媒体服务器建立连接。视频和图片也可以来自离用户较近的 CDN 节点。综合比较优劣，UDP 往往要优于 TCP。实际视频播放往往不是下载整个视频，而是一个片段一个片段地下载缓冲，用户也很可能会拖动进度条，而跳过某些片段。<br>流媒体系统很适合和 CDN 配合部署，在视频处理完成后，应当写入一个待分发的 queue（为了避免图中过于杂乱，这部分没有），而有一个 Distribution Service 来读取这样的视频信息，并将视频和图片分发到 CDN 的各个节点上。分发可以是主动的，也可以是被动的（根据用户实际访问的热度）。<br>客户端应当具备解码的能力，也有相应的容错处理。在一个流媒体地址访问失败的情况下，除了重试，还可以具备切换到备用地址的能力。</p>
+<h1 id="7-爬虫搜索系统"><a href="#7-爬虫搜索系统" class="headerlink" title="7. 爬虫搜索系统"></a>7. 爬虫搜索系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6327">https://www.raychase.net/6327</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>互联网搜索引擎都有爬虫系统，无论是 Google 还是百度。当然这里我们讨论的只是一个极其简单的版本。</p>
+<p>对于爬到的资源，我们这里其实讨论的只是文本而已，还有图片、音频、视频这些媒体，如果我们也需要存下来，那就需要专门的媒体服务。对于媒体文件的存放，在之前的文中已经讨论过，这里就不再覆盖了。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image7_1.png"></p>
+<p>上半部分是爬取的过程，Page Fetcher 根据 URL 队列里面的事件来去实际的页面中爬取内容。不同的网站可以使用不同的 queue，配合从不同 queue 中 poll 的策略，这样可以合理分配资源，避免对某一个网站投入了太多的资源。爬虫需要解析 robot.txt，也要限制爬取的进程&#x2F;线程数，保证不会有太多的爬虫访问冲垮网站。<br>DNS Service 其实是一个统一存储域名到 IP 解析服务的组件，这个组件可以缓存下一些 DNS 的查询结果，因为如果单纯地在每次爬取过程中依赖于互联网 DNS 查询，请求量会过大，而且具备大量的重复请求。<br>Dedup（去重）是一个重要的步骤，既包括文档的重复识别，也包括 URL 的重复识别，可以使用一个简单的 checksum 来实现，对于新的网页文本和 URL，分别存到各自的数据库里面。<br>网页的数据库可以使用 Bigtable 这样适合存放小型文本的存储服务，URL 则可以存放到 KV 数据库中。为了提高查询和比较的效率，checksum 可以缓存在内存中。<br>对于网页上新（未爬取）的 URL，放到队列中，以便爬虫工作。<br>下半部分包括了索引的建立，即从查询词到文本内容的索引。也包括了搜索这个行为——Search Service 处理查询语句，查询索引数据，进行过滤和排序，并返回结果，而页面镜像可以从 Document Service 处获取。</p>
+<h1 id="8-文件同步分享系统"><a href="#8-文件同步分享系统" class="headerlink" title="8. 文件同步分享系统"></a>8. 文件同步分享系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6345">https://www.raychase.net/6345</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>文件同步分享系统包括 Dropbox、Google Drive，也包括国内的各种网盘，比如百度网盘。总的来说，这里讨论的这个系统包含这样几个基本功能：</p>
+<p>文件变更检测；<br>文件增量上传和下载；<br>文件分享和同步。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image8_1.png"></p>
+<p>总体来说，上半部分是文件变化的检测和上传。上传分为两条路线，一条是控制流，一条是数据流。<br>客户端方面，包含这样几个关键组件和步骤：<br>有一个 Watcher 用来监控操作系统的文件变化，无论是 Linux 还是 Windows 都可以在文件系统上挂载回调，当文件系统发生变化的时候通知它。<br>有一个 Chunker 帮助给需要传输的数据分块，也负责将收到的 chunks 写入成为文件。对它来说它只负责听从 Indexer 的要求，处理 chunk 和文件之间的转换并进行文件系统的读写，属于数据流部分。<br>有一个 Indexer 是客户端的大脑，状态维持在一个客户端的数据库中，还要指挥 Chunker 通过远程的文件服务读写数据。客户端的变更元数据通过 Indexer 发送给服务端的 Metadata Service，它属于控制流部分。<br>服务端方面，上半部分是文件上传部分。由于一个客户端的数据变更而引起的文件上传的数量很可能不稳定，例如第一次的时候有可能要上传大量的文件，因此上传的文件需要通过队列缓冲。<br>Metadata 需要放在一个数据库中，单条数据比较小，可以选用 KV 数据库+事务控制，或者 RDB+sharding。控制流部分告知要上传的文件，得到 Metadata Service 的批准以后，客户端直接向 Block Service 写文件数据。完成以后再告知 Metadata Service，并在 Metadata 数据库中更新文件上传的状态。<br>文件实际的数据按照块的形式组织，存放在分布式文件系统中。大文件拆分成小的块，这样如果某一个块的校验码（checksum）不匹配，重传该块即可，不需要重传整个文件。理论上文件去重也可以根据块通过特定的 hash 算法来进行，重复的块可以避免传输和存储来节约开销，当然，文件去重一定会面临着 collision 的风险，即便这个可能性再小它也依然是存在的。去重算法所得到的块 hash 串，不但在服务端存储，也在客户端存储。<br>Sync Service 由队列中的数据驱动，负责同步逻辑，把需要同步的数据放到下半部分的若干个同步队列中去，每个客户端由于所在的文件系统状态很可能不一样，因此一般需要消费不同的队列。<br>Notification Service 和客户端建立长连接，推送告知客户端需要同步的数据。移动客户端和桌面端不一样，可以告知需要同步的文件，但它不一定要时刻保持实际的文件同步，主要是考虑流量节约的目的。</p>
+<h1 id="9-协同编辑系统"><a href="#9-协同编辑系统" class="headerlink" title="9. 协同编辑系统"></a>9. 协同编辑系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6429">https://www.raychase.net/6429</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>这里讲的 “协同编辑”，指的是 “Collaborative Editing”，多个人同时一起编辑同一个文件，比如说 Google Docs，国内的有有道云协作、石墨文档之类的。这样的系统倒不如我们前面提到的那些应用系统那么 “火”，但是，依然具备相当的典型性。</p>
+<p>第一印象，这样的一个系统，我们可以简单做出如下归类：</p>
+<p>这是一个文件编辑系统，这是最最基础的一个功能性需求，它就好像是 Windows 下的记事本，只不过它是在线的。<br>这是一个分布式系统，客户端&#x2F;浏览器可以在不同的地方，通过网络和服务端联结，用户的编辑行为转化为请求发送给服务端。<br>这是一个异步系统，编辑编辑过程中，事件都是由不同用户的浏览器&#x2F;客户端上对文件的来触发的。<br>因此，根据上面的三条，我们可以 “没什么新意” 地归纳出一些相应的需求和限制，不过，这个系统里面还隐含了这么几个特殊的要求：</p>
+<p>自动保存：所见即所得，所见即所存。因此文件的变更需要自动同步到服务端保存，并且显然一般情况下，这是一个增量同步。这个增量同步是双向的，既有客户端到服务器，也有服务器到客户端。<br>冲突处理：在多数情况下，系统要能够自动处理合并多人对于同一个文件在同一时间的修改，这个文件多数是文本文件，或者至少是内容结构化了的文件。<br>版本管理：要能够追溯修改历史，回退版本，甚至单独剔除或合并特定用户的修改等等。<br>权限管理：不同的人可以具备不同的权限，比如有的人只可以读，有的人可以写。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image9_1.png"></p>
+<p>图中虚线表示控制流，也包括协同编辑文件的创建，但是实际的文件内容数据流动，是通过实线完成的。<br>上半部分表示的是一个文件创建的过程，Application Server 接受请求，通过 Metadata Service 把文件创建出来。文件赋予不同的权限组，Auth Service 管理权限记录。<br>下半部分，用户把编辑内容增量写入 Channel Service，这样的事件经过鉴权和简单处理后放入待处理队列。Collaboration Service 从队列中取出事件并处理，它在完成编辑操作以后，把 merge 完的变更事件写到另一个队列中去，并通过 Channel Service 把更新推送给另一个用户。<br>一般的系统，在服务端推送的时候建立长连接的比较多，但是这类系统在客户端推送和服务端推送两头都要建立长连接。 客户端每发生一次变更，就要把事件通知到 Channel Service，反之亦然 。之所以这样做，有两个原因，<br>一是因为数据要尽可能实时地同步；<br>二是这样的数据包一般都比较小，长连接可以减少开销。<br>所谓增量变更，常见的包括三种：insert、delete 和 retain，前两个用于对当前光标位置的字符增删操作，后者用于移动光标。<br>对于文件修改的冲突自动解决和合并，有一个这类系统使用的特定的技术，叫做 Operational Transformation（OT）。基本上就是把根据用户编辑文档的版本和字符所在位置，以及编辑行为（增加或&#x2F;和删除），转换并合并编辑到实际文档中位置的一种技术。<br>对于修改历史记录的存储，肯定要存放一个基础版本加上每个变更。每个变更都很小，且按照时间序列排好，这样的变更数据使用支持索引的 KV 数据库或者列数据库都可以实现。<br>但是，如果只使用这个机制，在变更非常多的情况下，读出所有数据才能得到最新版本，效率很低，其中一个改进的办法是一定变更数量以后进行 archive，或者说对一系列变更做一个 snapshot。<br>因此，整体看来，这就是一个 Snapshot + WAL（Write Ahead Log）的典型实现。</p>
+<h1 id="10-电商秒杀系统"><a href="#10-电商秒杀系统" class="headerlink" title="10. 电商秒杀系统"></a>10. 电商秒杀系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6434">https://www.raychase.net/6434</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>这篇是关于电商平台秒杀系统的。</p>
+<p>首先，我觉得 “秒杀” 是一个中国色彩浓重的词，这样的概念在西方电商系统中也有，但只有在中国，本来业务量就已经如此之巨大了，还将其如此发扬开来。因此顶尖的秒杀高并发场景，还真是基本上只有在中国的电商平台系统中，才能见得到。</p>
+<p>其次，我觉得对于系统设计的学习，电商秒杀系统这样的极致，即便再精彩，还是应当放在第二位的。扎扎实实地把常规的高并发系统设计做好，才是最重要的。因为无论秒杀系统使用怎样的特殊技巧和手段，高并发分布式系统才是一个秒杀系统工作的根基。</p>
+<p>有了以上说明，现在再来谈论电商秒杀系统。电商秒杀系统，它首先是一个电商系统，因此一个大型的电商系统一般要至少包括这样几个功能：</p>
+<p>商品浏览<br>商品入购物车<br>下订单<br>结算支付</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image10_1.png"></p>
+<p>因此，对于上面这张图，先从电商系统的角度来看。为了实现电商系统的基本功能，应该具备这样几个服务：</p>
+<p>Product Service，包含产品元信息。<br>User Service，包含用户信息。<br>Storage Service，包含产品库存信息。<br>Payment Service，提供专门的支付服务。<br>Order Service，订单服务。<br>当然还有一些没有列出来，比如搜索、陈列产品的服务等等。<br>流程上面：</p>
+<p>下面实线部分就是订购流程的主体，其中的多数内容，无论是不是秒杀，都是一样的。<br>用户进行选择订购支付，订单下成功以后，会去库存里面暂时锁住货物记录，给用户时间支付，用户支付成功以后，会修改订单状态，订单系统就会相应地修改库存该货物的状态。<br>如果超过一定时限没有支付成功，订单系统会异步修改库存状态，把该货物的状态改回 “可订购”，并关闭当前订单。<br>有了基本的电商系统角度对组件和流程的认知，再来看秒杀的角度。</p>
+<p>上面虚线的部分，就是秒杀活动前准备的部分。管理员会创建秒杀活动记录，这些秒杀货物会单独标记和存放，以避免被普通订购业务所涉及。在活动开始前秒杀服务器会加载相应的数据到内存中，这部分下面会提到。<br>对于为了秒杀而进行的系统设计与优化，首先，最重要的一条，是要做到系统隔离。秒杀系统要尽可能地不要影响到主要业务，因此这里面的 web 服务，要单独使用为秒杀服务配备的服务器。<br>其次，要尽可能地把请求拦截在流程的前部，并平滑请求量。<br>比如，秒杀链接生成的时候，用户的请求可以不用全部放进来，对于流量特别大的情况，让大部分用户的请求从用户就近节点的 CDN 走，告知用户秒杀结束。只有少部分用户的请求放到中心节点来。<br>比如，对于秒杀页面的加载，静态资源要尽可能在动静分离的前提下，地使用页面缓存和从 CDN 去获取，以减缓对主系统的压力。<br>再比如，通过点击后按钮置灰、验证码、答题、token 等方式减少和延缓用户请求，也过滤掉那些脚本请求。<br>最后，也是最重要的，是系统一定要具备成熟的流控机制，丢弃无法处理的请求。<br>再次，系统要尽可能地减少请求处理的时间，从而增大吞吐量。<br>比如，在 Web Server 上要引入缓存，将秒杀商品的信息加载到内存中。每台机器都分配一定量的可秒杀商品，这些商品页全部加载到内存中。秒杀防重也在内存中做。<br>考虑下单的过程可能是一个系统开销较大的过程，可以将下单的请求放到队列中维护，Order Service 会异步处理。这些异步处理的过程，对于一致性要求高的部分，可以使用单独的锁服务来保证。</p>
+<h1 id="11-数据监控系统"><a href="#11-数据监控系统" class="headerlink" title="11. 数据监控系统"></a>11. 数据监控系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6439">https://www.raychase.net/6439</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>这篇是讲数据监控系统的，常见的包括 Datadog 和 Prometheus 等等。一个比较完整的数据监控系统要包括数据采集和数据展示两个部分。在此基础上，还可以具备告警和其它数据处理的功能。</p>
+<p>对于监控的数据， 通常包括两类，一类是操作系统层面的数据，比如 CPU、内存、IO 等等；还有一类是应用相关的数据，这些数据就具备明确的业务意义了。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image11_1.png"></p>
+<p>大体上，图中虚线表示控制流，而实现表示实际的统计数据流向。<br>用户通过 Web UI 来查看数据、定义规则，这些元信息存储在图中上方的元数据库中。<br>Cluster Manager 和不同集群内的 cluster agent 通信，agent 通过心跳的方式和 manager 保持连接。<br>每个集群中，每个节点都有 node agent 负责采集数据，并将它们汇报给 cluster agent，cluster agent 汇总后写到一个队列中，也可以使用专门的数据流处理服务，后者实时性更高。<br>这个队列或是数据流有多个订阅者，它们从中读取数据并执行相应的操作，比如生成压缩数据，或者生成时序数据。<br>时序数据既可以被用作主要的数据展示数据来源，又可以被 Monitoring Service 拿来用作告警的判断之用。<br>这里面接收 metric emission 的核心服务，也可以不通过这种队列+worker 的方式来实现，而是就作为一个普通的 service，但是这种需要有比较高的性能要求（吞吐量），数据还不能丢。其中一种方法就是使用 WAL，然后最近的数据在内存中存放，攒够一批 merge 并写入存储。<br>[Updated on 9&#x2F;16&#x2F;2024] 关于时序数据，也是一个很有意思的话题。Prometheus 提供了一个很好的例子。<br>时序数据大概是这个样子的：</p>
+<p>时序数据的 schema 大致是这个样子的：</p>
+<p>?<br>1<br>(name, label(name, value)<em>, time, value)</em><br>就是说，一条数据有一个名字，接着是 0 到 n 个的 label，相当于是数据的除了时间以外额外的维度，再是时间戳和具体的值。我们的 metric 大多是由一堆这样的数据构成的。</p>
+<p>举个例子，一个 service，要求统计请求处理的 latency：</p>
+<p>?<br>1<br>2<br>3<br>4<br>(“application-A”, “path”&#x3D;”&#x2F;record”, “method”&#x3D;”get”, 1726519187665, 233),<br>(“application-A”, “path”&#x3D;”&#x2F;record”, “method”&#x3D;”post”, 1726519187667, 57),<br>(“application-A”, “path”&#x3D;”&#x2F;record”, “method”&#x3D;”get”, 1726519187680, 462),<br>…<br>对于每一个请求，都有 HTTP path 和 HTTP method 两个额外的维度。</p>
+<p>数据监控系统中使用到的时序数据，往往由这样的读写特点：</p>
+<p>写大致是基于时间顺序的，但并不是严格保证的；<br>数据很少修改，一般都是 append；<br>主要的查询通常是基于时间范围的，就是说，总是先选取一个时间范围，然后获取数据；<br>通常近期的数据获取比较频繁，历史数据很少查询；<br>对于这样的数据，如果采用传统的普通关系数据库来存储，可行，但是在数量比较大的情况下至少会有两个大的 concern：</p>
+<p>一个是存储成本；<br>另一个是查询的效率。<br>所以，在专门的 TSDB 之外，还有一些出于解决上述 concern 的目的，而基于普通的 RDB 进行扩展优化的方案。比如说，这个使用列压缩技术的例子，其实就是把行数据库变成列数据库（行数据库通常适合 OLTP 系统，而列数据库适合 OLAP 系统），来继续使用 Postgres 来存储时序数据。这种数据库的好处就是，它可以一定程度上同时适配行式数据库和列式数据库的需求。时序数据有一个重要话题就是数据压缩，因为时序数据库它往往存储类似性非常强的数据，比如连续时间单位内，数据的变化往往是渐进的，因此这样的数据很适合用增量压缩的方式来减小存储，Facebook 在 Gorilla 的论文里面详细介绍了这一点。</p>
+<h1 id="12-证券交易系统"><a href="#12-证券交易系统" class="headerlink" title="12. 证券交易系统"></a>12. 证券交易系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6453">https://www.raychase.net/6453</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>这篇讲的是证券交易系统，这类系统包含的内容很多，但是我们还是把目光放在核心的交易部分，比如说股票交易。在某个可交易时间，如果卖家 A 要以至少 y 的价格卖掉股票 x，卖家 B 愿以至多 y 的价格买入股票 x，那么这个交易就可以发生。</p>
+<p>虽说是交易系统，但是它和任何一个支付平台的交易系统有着显著的不同，它的核心是一个竞价匹配的机制，而非货币支付的机制，简单地说，这个机制包含了这样四个步骤：</p>
+<p>挂单（可以是买单，也可以是卖单）<br>匹配（或者叫做撮合）<br>成交<br>清算<br>从非功能的角度看，有这样几条需求是这样的系统尤其要强调的：</p>
+<p>Consistency，从单个交易的角度来说，主要就是事务性，这是交易系统最最基本的要求。系统不能用了是个灾难，但是如果交易数据错误了这就是个大得多的灾难。<br>Durability，交易数据必须要持久化。<br>Throughput，很多股票市场都是对全球开放的，吞吐量意味着对于交易高峰的接纳能力。<br>Latency，和吞吐量关系密切，可以放在一起讨论。大型交易系统的延迟的最小单位都是按微秒论的。从架构上看这类系统具备一些异步系统（比如下单支付系统）的特点，但是低延迟的要求决定了它的处理方式明显不同。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image12_1.png"></p>
+<p>整个系统来看，包括挂单、匹配、交易和查询这样几个部分。实线部分表示的是写或读写操作，虚线是读操作。<br>假设有卖家和买家两个用户，分别在不同的时间提交了挂单请求，一个是卖单，一个是买单。<br>鉴权分为两个部分来完成，基础的部分由 API Gateway 来完成。<br>Exchange Server 收到原始挂单请求以后，首先调用 Sequencer 去获取一个时间戳，也包括一个基于时间戳生成的 ID。这个时间戳非常重要，因为交易的逻辑里面，对于买单卖单的匹配，以及同价单的优先级，都要基于时间戳的规则来进行。时间戳不能仅仅基于 Exchange Server 自己的时钟来进行，因为每台机器的时钟很可能都不一样。<br>对于买单，查询账户系统并扣住保证金。<br>将买单或卖单放入指定的队列，不同的股票有不同的队列来维护。这个队列本身是一个优先级队列，从宏观上看就是 order book。对于买单来说，买价越高越靠前；对于卖单来说，卖价越低越靠前。<br>不同队列的变更会被 router 通知到不同的匹配（撮合）引擎，这里有多个不同的引擎，每个引擎关注不同的队列变更。在每个引擎的内存中维护一个队列中靠近队列出口的买卖单集合，也是以优先级队列的形式维护在内存中（具体实现可以是堆）。<br>这样迅速的匹配就可以在内存中迅速发生并完成，内存的数据结构以 Snapshot + WAL 的方式持久化，以达到效率和状态不丢失的平衡。<br>如果这台机器崩溃，还有集群中的备用机可以顶上，并从上述的 Snapshot + WAL 中恢复之前的状态。这些机器都通过 Node Manager（比如 Zookeeper）来管理。<br>每次匹配完成，都有一个事件加入到 exchange 的队列中，每只股票都有自己的 exchange 队列。<br>Router 将队列的事件通知到相应的支付系统和 Tick Calculator。支付系统（或者是清算系统）会完成用户扣款或打款的操作，而 Tick Calculator 会根据交易信息改变当前的股价并持久化到数据库中（这里的数据库需要较大的吞吐量，可以根据股票种类+时间序做 sharding）。<br>用户可以查询自己的账户变更状况，用户也可以通过 Quotation 系统查询股价变更状况。</p>
+<h1 id="13-短网址系统"><a href="#13-短网址系统" class="headerlink" title="13. 短网址系统"></a>13. 短网址系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/6460">https://www.raychase.net/6460</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>短网址系统可能是最常见的分布式系统设计问题之一了，本身从业务需求上说，读远多过写，而且数据结构确定且简单，数据量小，还易于使用缓存，因此本身难度在分布式系统的问题里面算是比较低的。另外，这个系统本身 “分布式” 的特性也比较弱，而且从组件图的角度来说，没有多少是 “可画的” ，因此之前也就没有介绍它。不过后来我改变想法了，我觉得还是可以总结总结，特别是可以把一些相关的特殊需求考虑进去。</p>
+<p>短网址服务就像是 bit.ly 这样的，给一个长长的 URL，它给你吐出一个较短的 URL，往后访问这个 URL 就可以做到 302 重定向到原来那个长 URL 了。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image13_1.png"></p>
+<p>图中上半部分是写的部分，无论是 API 直接调用还是通过某一个 UI 去调用，Write API 会进行鉴权操作。另外，如果源 URL 已经是经过短网址服务处理过的，就需要返回失败，否则就陷入了一个递归服务的窘境。<br>其中写部分的 Cache 是用来防止一些过度的访问，比如由于某种原因，短时间内对某一个特定 URL 来生成短网址的请求特别多，那么就可以通过它来发现并阻止。<br>Key Generator 用来生成短网址中变化的部分（key），这里面根据不同的需求有几种方法：<br>如果允许按序，那么最简单的方法是使用数据库的 sequence，为了高可用，可以配置多个数据库，step 相同，但起点分散开，比如数据库 A 生成 ID 序列为 1、3、5……，数据库 B 则是 2、4、6……<br>拿到数据库生成的 ID 以后，可以将这个十进制数转成 [a-zA-Z0-9_-] 这样的 64 进制数。<br>如果要求 key 无序，那么可以再根据上述结果加一个算法上的小处理，保证 ID 到最终 key 的一对一映射即可，最简单的方法是单个数或者字符的映射，比如 a-&gt;3、b-&gt;M（当然，这种方法相对也比较好猜）。<br>如果需要自定义 ID，那么这个 Key Generator 可以接受一个自定义 key 去数据库里面找，找不到就可以用，否则就意味着冲突出现了。<br>Key 得到以后，生成的相对路径和原 URL 需要写入 URL DB 中。<br>这里面有一个问题，就是如果两次请求的长 URL 相同，系统应该给出同样的短 URL 还是不同的短 URL？或者说，应该考虑去重吗？一般说来，不应该去重，应为根据短 URL 可以进行许多收费和数据分析，这两个相同的长 URL 来自于不同的用户，如果这里合并去重了就丢失了和用户对应的这部分信息。<br>短 URL 生成以后，这里我还画了一个 Syncer，用来将生成的新映射同步到其它地区的节点去。因为短网址的读的服务如果在本地，那么显然响应速度是更快的，而且也可以减轻中心节点的负担。<br>不同地区的用户，在使用读服务的时候，通过带有缓存的 Read API 来进行，但是具体的地址是根据 DNS 来做均衡，优先使用本地的读服务。<br>关于读服务，还有一个常见问题是，HTTP 状态码应该是 301 还是 302？一般应该使用 302，因为 301 是永久重定向，很明显我们不希望它是永久重定向，而应该是临时重定向，因为永久重定向会丢失很多后续的访问，和前面提到的去重问题，一样不利于收费和数据分析。</p>
+<h1 id="14-日志系统"><a href="#14-日志系统" class="headerlink" title="14. 日志系统"></a>14. 日志系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/7087">https://www.raychase.net/7087</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>典型的互联网应用的日志系统，从功能需求上看主要包括收集，存储和分析，以及展示这样三个部分，因此整个系统我觉得也可以按此思路大致可以分为三个部分：</p>
+<p>日志收集，从宿主机上采集业务应用的日志，发送给远端的日志系统；<br>日志存储、分析和后期处理；<br>日志查询和分析数据展示。<br>非功能需求方面，我觉得可以考虑这样几个要点：</p>
+<p>Durability：这是最重要的，尽可能不要丢失日志，到服务端的日志不要丢，在客户端的日志，也是如此，即便服务端不可用或连接断开，客户端的日志也要保存在本地。<br>Availability：其次是可用性，要保证高可用。<br>Performance：相较来说，日志系统的 performance 主要是吞吐量而非延迟，而且网络带宽需要特别算一下。<br>Scalability：业务应用增减引起的 scale 变动会非常频繁。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image14_1.png"></p>
+<p>图中虚线为控制或辅助的逻辑，实线为实际的日志数据，或处理过的日志数据的流向。<br>客户端日志需要分片，日志的客户端采集和处理策略存储在客户端，可以通过配置文件修改，或者通过一个第三方的系统统一将数据同步过去。<br>本地的分片日志经过部署在客户端宿主机上的 Log Collector 应用来收集，这个应用需要独立进程，尽量避免影响主营业务。<br>日志实时地发给 Log Service，需要数据压缩以减少带宽占用，可以采用 “微批量”（micro-batches）提高效率。<br>特殊情况下，某些区域多个本地客户端可以部署一个 Aggregator 来进行日志实时聚合，聚合后再发给服务端 Log Service。<br>Log Service 收集到日志以后放到一个持久化的分布式队列中，比如 Kafka，首先进行错误修正、去重、格式统一化等操作，在一定时间且经过特定的下游系统消费后数据可删除。有多个不同的 consumer 会消费它上面的数据，在介绍分布式实时流处理系统的时候提到过类似的机制，不赘述。<br>图中列出了三大 consumer，分别是日志分析系统、日志压缩存储系统和日志搜索系统。<br>日志压缩系统可以把日志根据策略压缩并存储到一个 “cold storage” 中，这样的存储可能对查询并不友好，但是便宜，比如 S3，甚至 AWS Glacier（它用磁带存储），主要目的是备份和非常低频率的批量访问或主键查询。<br>Elastic Search 用来存放供查询的日志，这里需要考虑一个 retention policy，对于过老的日志，根据实际的需要，可以考虑从中移除出去。<br>最后有一个 UI 来帮助日志查询和分析数据的展示，比如 Kibana。</p>
+<h1 id="15-支付系统"><a href="#15-支付系统" class="headerlink" title="15. 支付系统"></a>15. 支付系统</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.raychase.net/7140">https://www.raychase.net/7140</a><br>收集时间：2024-09-21</p>
+</blockquote>
+<p>支付（Payment）系统可以很复杂，比如可以和银行打交道，和信用卡系统打交道。如果我们考虑用户在一家电商买东西，在结账的时候，借助电商支持的支付系统（Payment Service Provider）来完成支付行为。</p>
+<p>支付系统需要结合商家（包含卖家和买家）一起来看。最典型的一种需求是，卖家在电商网站挂了东西卖，买家挑选了货物，结账并支付，电商依赖于支付系统来完成支付，并通知买家支付成功。</p>
+<p><img src="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/image15_1.png"></p>
+<p>图中用两条虚线分隔出了 3 列，最左边是用户，中间是电商系统（比如 Amazon），右边是 Payment Service Provider（PSP，比如 PayPal）。支付操作需要保证幂等性，从而在重试的过程中保证不会被重复扣钱。<br>有的电商自己会存储用户具体的支付信息，比如信用卡信息和银行账号信息，但是这样的数据管理成本由于安全需求的原因非常高，因此也有很多电商省掉这个麻烦，选择让 PSP 来管理。图中就是对于这种情况的示意。<br>图中用户在 checkout page 结账页面，store 向 PSP 发送一个 registration 请求，得到一个 token，这个 token 就可以后续用来查询支付信息。再根据这个 token 生成一个跳转到 PSP 网页的 URL，于是这个 URL 重定向用户的请求到了 PSP 的支付页面。一并带过去的，除了 token，还可能会有一个回调 URL，用以支付成功以后跳转回 store 的成功页。<br>用户填上信用卡信息并提交，PSP 会生成一个待支付的事件放到 Payment Queue 中。<br>Payment Worker 会异步地和信用卡公司通信并完成支付行为，更新账本 Ledger 系统，并放入一个通知事件到 Notification Queue 中。对于反复投递不成功的消息，放入 Dead Letter Queue 作备案处理。<br>这个 queue 会有不同的消费者，其中一个是 Webhook Worker，将成功的消息告知 store（或者是通知支付页处理完成的消息，用户就被重定向到 store 的订单支付完成页面）。这之后如果 store 需要知道具体的支付信息，可以使用之前的 token，发起主动查询。<br>定期还可能会有对账（Reconciliation）和生成 statement 等异步任务，图中没有列出。例如，store 往往需要定期执行对账任务，调用 PSP API 来检查支付和账户数据的一致性。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%94%B6%E9%9B%86%E6%96%87%E7%AB%A0/" rel="tag"># 收集文章</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/11/09/%E4%BA%94%E7%A7%8D%E5%B8%B8%E8%A7%81%E7%9A%84%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="prev" title="五种常见的软件架构设计模式">
+      <i class="fa fa-chevron-left"></i> 五种常见的软件架构设计模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/" rel="next" title="常见分布式基础设施系统设计图解">
+      常见分布式基础设施系统设计图解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%8D%B3%E6%97%B6%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F"><span class="nav-number">1.</span> <span class="nav-text">1. 即时消息系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-Feed-%E6%B5%81%E7%B3%BB%E7%BB%9F"><span class="nav-number">2.</span> <span class="nav-text">2. Feed 流系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-Top-K-%E7%B3%BB%E7%BB%9F"><span class="nav-number">3.</span> <span class="nav-text">3. Top K 系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E8%BE%93%E5%85%A5%E5%BB%BA%E8%AE%AE%E7%B3%BB%E7%BB%9F"><span class="nav-number">4.</span> <span class="nav-text">4. 输入建议系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-Proximity-%E7%B3%BB%E7%BB%9F"><span class="nav-number">5.</span> <span class="nav-text">5. Proximity 系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%B5%81%E5%AA%92%E4%BD%93%E7%B3%BB%E7%BB%9F"><span class="nav-number">6.</span> <span class="nav-text">6. 流媒体系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E7%88%AC%E8%99%AB%E6%90%9C%E7%B4%A2%E7%B3%BB%E7%BB%9F"><span class="nav-number">7.</span> <span class="nav-text">7. 爬虫搜索系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E6%96%87%E4%BB%B6%E5%90%8C%E6%AD%A5%E5%88%86%E4%BA%AB%E7%B3%BB%E7%BB%9F"><span class="nav-number">8.</span> <span class="nav-text">8. 文件同步分享系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%8D%8F%E5%90%8C%E7%BC%96%E8%BE%91%E7%B3%BB%E7%BB%9F"><span class="nav-number">9.</span> <span class="nav-text">9. 协同编辑系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-%E7%94%B5%E5%95%86%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F"><span class="nav-number">10.</span> <span class="nav-text">10. 电商秒杀系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-%E6%95%B0%E6%8D%AE%E7%9B%91%E6%8E%A7%E7%B3%BB%E7%BB%9F"><span class="nav-number">11.</span> <span class="nav-text">11. 数据监控系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#12-%E8%AF%81%E5%88%B8%E4%BA%A4%E6%98%93%E7%B3%BB%E7%BB%9F"><span class="nav-number">12.</span> <span class="nav-text">12. 证券交易系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#13-%E7%9F%AD%E7%BD%91%E5%9D%80%E7%B3%BB%E7%BB%9F"><span class="nav-number">13.</span> <span class="nav-text">13. 短网址系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#14-%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F"><span class="nav-number">14.</span> <span class="nav-text">14. 日志系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#15-%E6%94%AF%E4%BB%98%E7%B3%BB%E7%BB%9F"><span class="nav-number">15.</span> <span class="nav-text">15. 支付系统</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

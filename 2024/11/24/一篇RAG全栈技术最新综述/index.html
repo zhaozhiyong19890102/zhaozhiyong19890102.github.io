@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="RAG">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一篇RAG全栈技术最新综述">
+<meta property="og:url" content="http://example.com/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="RAG">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/image_1.webp">
+<meta property="og:image" content="http://example.com/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/image_2.webp">
+<meta property="og:image" content="http://example.com/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/image_3.webp">
+<meta property="og:image" content="http://example.com/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/image_4.webp">
+<meta property="article:published_time" content="2024-11-24T13:31:08.000Z">
+<meta property="article:modified_time" content="2024-11-24T13:56:41.973Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="RAG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/image_1.webp">
+
+<link rel="canonical" href="http://example.com/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>一篇RAG全栈技术最新综述 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          一篇RAG全栈技术最新综述
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2024-11-24 21:31:08 / Modified: 21:56:41" itemprop="dateCreated datePublished" datetime="2024-11-24T21:31:08+08:00">2024-11-24</time>
+            </span>
+
+          
+            <div class="post-description">RAG</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/gaEGL2N3JH26QCB6q84N1Q">https://mp.weixin.qq.com/s/gaEGL2N3JH26QCB6q84N1Q</a><br>收集时间：2024-11-24</p>
+</blockquote>
+<p>检索增强生成（RAG）的出现，利用外部知识数据库来增强LLMs，弥补了LLMs的幻觉问题、知识更新等问题：</p>
+<ul>
+<li>系统地介绍了RAG的每个组成部分，特别是检索器和检索融合重要技术，以及带有教程代码的检索融合技术。</li>
+<li>展示了不同的RAG训练策略，包括带或不带数据存储更新的RAG。</li>
+<li>讨论了RAG在下游NLP任务和实际NLP场景中的应用。</li>
+</ul>
+<p>自然语言处理NLP中检索增强生成的概述：检索器（Retriever）、检索融合（Retrieval Fusions）、生成器（Generator）</p>
+<p><img src="/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/image_1.webp"></p>
+<h1 id="1-检索器（Retriever）"><a href="#1-检索器（Retriever）" class="headerlink" title="1. 检索器（Retriever）"></a>1. 检索器（Retriever）</h1><p>检索器（Retriever）是检索增强生成（RAG）中的一个关键组件，其主要作用是从一个外部知识库中检索与输入相关的信息。</p>
+<p><img src="/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/image_2.webp"></p>
+<p><strong>构建阶段</strong>：将文档分割成小块，对这些块进行编码，并建立索引以支持高效的检索。</p>
+<ol>
+<li>分块语料库（Chunking Corpus）：<ul>
+<li>固定长度分块：通过设定长度参数顺序地分割文档。</li>
+<li>基于语义的分块：根据语义标志（如句号或新行字符）切割文档。</li>
+<li>基于内容的分块：根据文档的结构特征（如电子病历的章节或编程代码的功能块）进行分割。</li>
+</ul>
+</li>
+<li>编码块（Encoding Chunks）：<ul>
+<li>BERT及其变体：如RoBERTa、DistilBERT、ELECTRA，生成密集的语义嵌入。</li>
+<li>Siamese Encoders：设计用于学习输入之间相似性的神经网络，如DPR、SimCSE。</li>
+<li>LLM-based Encoders：利用大型语言模型的表示能力，如text-embedding-ada-002、bge-embedding。</li>
+<li>稀疏编码：如词袋模型（BoW）、TF-IDF，通过高维向量表示文本，其中大部分元素为零。</li>
+<li>密集编码：使用深度神经网络模型生成向量，每个维度都可以捕捉语义特征。包括：</li>
+</ul>
+</li>
+<li>索引构建（Building the Index）：<br> 索引的目的是加速多维查询嵌入的搜索过程，主要关注支持高效的近似最近邻搜索。<ul>
+<li>选择相似性度量（Choice of Similarity Metrics）：余弦相似度、欧几里得相似度、曼哈顿距离、雅卡尔相似度等，用于衡量查询嵌入和块嵌入之间的相关性。</li>
+<li>降维（Dimension Reduction on Embeddings）：<ul>
+<li>主成分分析（PCA）：一种统计技术，用于将原始数据转换为新坐标系，同时保留最重要的特征。</li>
+<li>局部敏感哈希（LSH）：通过将数据映射到桶中来显著降低维度，同时保留原始输入数据的相似性。</li>
+<li>乘积量化（PQ）：将高维空间划分为更小的、独立量化的子空间。</li>
+</ul>
+</li>
+<li>高级ANN索引（Advanced ANN Indexing）：<ul>
+<li>IVFPQ：结合倒排文件系统和乘积量化，用于高效和可扩展的ANN搜索。</li>
+<li>HNSW：使用分层图结构在高维空间中高效执行ANN搜索。</li>
+<li>基于树的索引：如KD-Trees、Ball Trees和VP-Trees，用于组织高维向量。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>构建数据存储（Building the Datastore with Key-Value Pairs）：<ul>
+<li>使用专门的数据库（如LMDB或RocksDB）存储和管理数据，以支持高效的检索和数据持久性。</li>
+<li>最近的一些工作提出了各种最先进的向量数据库，包括索引和数据存储，例如Milvus 、FAISS、LlamaIndex等。</li>
+</ul>
+</li>
+</ol>
+<p><strong>查询阶段</strong>：使用相同的编码器对查询进行编码，然后利用预建索引和数据存储进行近似最近邻搜索，以检索相关值。</p>
+<ol>
+<li>编码查询（Encoding Queries）：使用与构建检索器时相同的编码器对查询进行编码，确保查询嵌入与检索器的嵌入空间一致。</li>
+<li>近似最近邻搜索（ANN Search）：<ul>
+<li>利用预构建的索引和数据存储执行近似最近邻搜索，找到与查询最相似的数据。</li>
+<li>搜索过程涉及比较查询嵌入与聚类嵌入，选择候选聚类，然后在每个聚类内执行产品量化，找到最近邻。</li>
+</ul>
+</li>
+<li>索引搜索（Indexing Search）：<ul>
+<li>搜索预构建的索引，找到k个最近邻，并返回这些最近邻的唯一标识符。</li>
+</ul>
+</li>
+<li>数据存储检索（Datastore Retrieval）：根据最近邻的唯一标识符从数据存储中获取相应的值。</li>
+<li>后处理（Post-Processing）：<ul>
+<li>重排序（Reranking）：根据任务特定的目标重新排序检索到的知识，以提高相关性。</li>
+<li>重要性加权（Importance Weighting）：为检索到的知识分配重要性权重，过滤掉不太相关的上下文。</li>
+</ul>
+</li>
+</ol>
+<h1 id="2-检索融合（Retrieval-Fusions）"><a href="#2-检索融合（Retrieval-Fusions）" class="headerlink" title="2. 检索融合（Retrieval Fusions）"></a>2. 检索融合（Retrieval Fusions）</h1><p>深入探讨了如何将检索到的知识整合到生成模型中，以提高性能：</p>
+<p><img src="/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/image_3.webp"></p>
+<ol>
+<li>检索融合类型：<ul>
+<li>基于查询的融合（Query-based Fusion）：将检索到的信息与输入查询直接连接或合并。</li>
+<li>潜在融合（Latent Fusion）：在生成模型的隐藏层中整合检索到的信息。</li>
+<li>基于对数的融合（Logits-based Fusion）：在生成模型的输出层整合检索到的信息。</li>
+</ul>
+</li>
+<li>基于查询的融合技术：<ul>
+<li>文本连接（Text Concatenation）：将检索到的文本与查询文本直接连接。</li>
+<li>特征连接（Feature Concatenation）：将检索到的文本编码成特征向量后与查询特征向量合并。</li>
+<li>FID：一种特征融合方法，将检索到的文本编码为稀疏或密集表示，并将连接的特征作为输入。</li>
+</ul>
+</li>
+<li>潜在融合技术：<ul>
+<li>基于注意力的融合（Attention-based Fusion）：使用交叉注意力机制将检索到的知识嵌入到模型的隐藏状态中。</li>
+<li>RETRO：一种使用检索增强的预训练语言模型，引入了一个新的交叉注意力模块。</li>
+<li>加权添加（Weighted Addition）：通过学习权重将检索到的知识嵌入以加权的方式添加到模型的隐藏状态中。</li>
+</ul>
+</li>
+<li>基于对数的融合技术：<ul>
+<li>集成融合（Ensemble-based Fusion）：将检索到的知识的对数与模型输出的对数结合起来，作为集成预测的一部分。</li>
+<li>kNN-LM 和 kNN-MT：利用最近邻模型的对数进行语言模型和机器翻译的增强。</li>
+<li>校准融合（Calibration-based Fusion）：使用检索到的知识的对数对模型的预测进行校准或调整。</li>
+</ul>
+</li>
+</ol>
+<h1 id="3-生成器（Generator）"><a href="#3-生成器（Generator）" class="headerlink" title="3. 生成器（Generator）"></a>3. 生成器（Generator）</h1><p>讨论了在检索增强生成（RAG）中使用的生成器类型及其特点：</p>
+<ol>
+<li>生成器类型：<ul>
+<li>默认生成器（Default Generators）：包括大多数预训练&#x2F;微调的大型语言模型，如GPT系列、Mistral模型和Gemini系列模型。</li>
+<li>检索增强生成器（Retrieval-Augmented (RA) Generators）：这些是包含融合检索信息模块的预训练&#x2F;微调生成器，例如RETRO和EncDec。</li>
+</ul>
+</li>
+<li>生成器的功能：生成器负责生成响应或进行预测，它们通常基于输入和相应的检索结果来生成文本。</li>
+<li>生成器的架构：生成器通常采用或修改基于Transformer的架构，专注于解码器模块，包括注意力模块和前馈网络模块。</li>
+</ol>
+<h1 id="4-RAG训练策略"><a href="#4-RAG训练策略" class="headerlink" title="4. RAG训练策略"></a>4. RAG训练策略</h1><p>深入讨论了检索增强生成（RAG）模型的训练方法和策略：RAG的不同训练策略，包括&#x2F;不包括数据存储更新</p>
+<p><img src="/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/image_4.webp"></p>
+<ol>
+<li>RAG训练分类：<ul>
+<li>不更新数据存储的RAG训练：只更新RAG中每个模块的可训练参数，数据存储中的知识保持不变。</li>
+<li>更新数据存储的RAG训练：先更新数据存储中的知识，然后更新RAG中每个模块的参数。</li>
+</ul>
+</li>
+<li>数据存储更新（RAG without Datastore Update）：<ul>
+<li>检索器训练（Training Retriever）：<ul>
+<li>训练检索器编码器并重建索引，通常涉及密集编码方法。</li>
+<li>根据训练目标，可能需要更换编码器或使用对比学习训练现有编码器。</li>
+</ul>
+</li>
+<li>生成器训练（Training Generator）：<ul>
+<li>更新生成器的参数或检索融合模块中的参数。</li>
+<li>采用参数高效的微调技术，如LoRA，以解决大型语言模型（LLMs）的微调问题。</li>
+</ul>
+</li>
+<li>联合训练检索器和生成器（Jointly Training Retriever and Generator）：<ul>
+<li>同时训练检索器和生成器以提高下游任务的性能。</li>
+<li>确保从输入到输出的正向过程中的可微性，以实现端到端优化。</li>
+</ul>
+</li>
+<li>数据存储更新（Datastore Update）：<ul>
+<li>种场景涉及两个阶段：更新知识库，然后训练检索器和生成器。更新知识库有三种情况，即用可训练的嵌入更新、用新值更新和用新语料库更新。</li>
+<li>在第一种情况下，值通常是可训练的嵌入，并且与RAG中的参数同时&#x2F;异步更新。最后两种情况通常指的是用最新信息更新知识库。</li>
+<li>以问答语料库为例，用新值更新指的是更新现有问题的答案，而用新语料库更新指的是添加新的问答对。要更新现有键的值，首先需要查询现有的键值对，然后执行就地更新。对于新的语料库，数据存储首先需要执行插入操作，然后重建或更新新键的索引。更新数据存储后，训练检索器和生成器类似于没有数据存储更新的RAG。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="5-RAG的应用场景"><a href="#5-RAG的应用场景" class="headerlink" title="5. RAG的应用场景"></a>5. RAG的应用场景</h1><p>RAG技术在各种自然语言处理（NLP）任务中的应用：</p>
+<ol>
+<li>语言模型（Language Modeling）：使用RAG提高预训练阶段的语言模型能力，通过修改生成器架构或在输入和输出中加入检索信息。</li>
+<li>机器翻译（Machine Translation）：利用RAG技术通过将外部知识融入翻译过程来提升翻译质量，可以是文本拼接或对数融合。</li>
+<li>文本摘要（Text Summarization）：应用RAG技术通过检索外部知识和相似文档来增强文本摘要任务，包括提取式和抽象式摘要。</li>
+<li>问答系统（Question Answering）：RAG技术结合信息检索和模型生成，适用于开放域和封闭域的问答系统，提高问题理解和信息检索的准确性。</li>
+<li>信息提取（Information Extraction）：使用RAG技术提高信息提取任务的性能，包括命名实体识别（NER）、关系提取（RE）等子任务。</li>
+<li>文本分类（Text Classification）：利用RAG技术增强文本分类任务，如情感分析，通过不同的外部知识融合策略来提升模型性能。</li>
+<li>对话系统（Dialogue Systems）：应用RAG技术改进对话系统，通过检索历史对话或相关信息来生成更连贯、相关的响应。</li>
+</ol>
+<p>RAG技术在实际应用场景中的具体实现和作用：</p>
+<ol>
+<li>LLM-based Autonomous Agents：<ul>
+<li>利用RAG为基于大型语言模型的自主智能体提供更广泛的信息访问能力，增强决策和问题解决能力。</li>
+<li>利用RAG从外部记忆检索信息：智能体可以使用RAG从自己的外部记忆中检索相关信息，以增强其理解和决策能力。</li>
+<li>利用RAG使用工具搜索网络：智能体可以利用工具搜索网络，获取最新信息，这对于需要最新知识的情境非常有用。</li>
+</ul>
+</li>
+<li>框架（Frameworks）：介绍了如Langchain和LLaMAindex等框架，它们通过集成复杂的检索机制与生成模型，促进了外部数据在语言生成过程中的整合。</li>
+</ol>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2407.13193">https://arxiv.org/pdf/2407.13193</a><br>Retrieval-Augmented Generation for Natural Language Processing: A Survey</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RAG/" rel="tag"># RAG</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/11/09/%E5%B8%B8%E8%A7%81%E5%88%86%E5%B8%83%E5%BC%8F%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9B%BE%E8%A7%A3/" rel="prev" title="常见分布式基础设施系统设计图解">
+      <i class="fa fa-chevron-left"></i> 常见分布式基础设施系统设计图解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/11/24/%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/" rel="next" title="实战从零开始实现Raft｜得物技术">
+      实战从零开始实现Raft｜得物技术 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%A3%80%E7%B4%A2%E5%99%A8%EF%BC%88Retriever%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">1. 检索器（Retriever）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%A3%80%E7%B4%A2%E8%9E%8D%E5%90%88%EF%BC%88Retrieval-Fusions%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">2. 检索融合（Retrieval Fusions）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E7%94%9F%E6%88%90%E5%99%A8%EF%BC%88Generator%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">3. 生成器（Generator）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-RAG%E8%AE%AD%E7%BB%83%E7%AD%96%E7%95%A5"><span class="nav-number">4.</span> <span class="nav-text">4. RAG训练策略</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-RAG%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">5.</span> <span class="nav-text">5. RAG的应用场景</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

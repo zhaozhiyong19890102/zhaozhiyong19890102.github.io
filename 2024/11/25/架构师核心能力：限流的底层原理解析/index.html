@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="在软件架构中，限流是一种控制资源使用和保护系统安全的重要机制。它通过限制在一定时间内可以处理的请求数量，来防止系统过载。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="架构师核心能力：限流的底层原理解析">
+<meta property="og:url" content="http://example.com/2024/11/25/%E6%9E%B6%E6%9E%84%E5%B8%88%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%EF%BC%9A%E9%99%90%E6%B5%81%E7%9A%84%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在软件架构中，限流是一种控制资源使用和保护系统安全的重要机制。它通过限制在一定时间内可以处理的请求数量，来防止系统过载。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-11-25T15:00:59.000Z">
+<meta property="article:modified_time" content="2024-11-25T15:21:29.698Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="架构">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2024/11/25/%E6%9E%B6%E6%9E%84%E5%B8%88%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%EF%BC%9A%E9%99%90%E6%B5%81%E7%9A%84%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>架构师核心能力：限流的底层原理解析 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/25/%E6%9E%B6%E6%9E%84%E5%B8%88%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%EF%BC%9A%E9%99%90%E6%B5%81%E7%9A%84%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          架构师核心能力：限流的底层原理解析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2024-11-25 23:00:59 / Modified: 23:21:29" itemprop="dateCreated datePublished" datetime="2024-11-25T23:00:59+08:00">2024-11-25</time>
+            </span>
+
+          
+            <div class="post-description">在软件架构中，限流是一种控制资源使用和保护系统安全的重要机制。它通过限制在一定时间内可以处理的请求数量，来防止系统过载。</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/ImrftOwc6UEuXxbHBDTgaA">https://mp.weixin.qq.com/s/ImrftOwc6UEuXxbHBDTgaA</a><br>收集时间：2024-11-25</p>
+</blockquote>
+<h1 id="1-限流的目的"><a href="#1-限流的目的" class="headerlink" title="1. 限流的目的"></a>1. 限流的目的</h1><p>限流主要有两个目的：</p>
+<ul>
+<li><strong>防止系统过载</strong>：确保系统在高负载情况下仍能保持稳定运行。</li>
+<li><strong>保证服务质量</strong>：为所有用户提供公平的服务，避免某些用户占用过多资源。</li>
+</ul>
+<h1 id="2-限流算法的实现"><a href="#2-限流算法的实现" class="headerlink" title="2. 限流算法的实现"></a>2. 限流算法的实现</h1><h2 id="2-1-固定窗口计数器算法"><a href="#2-1-固定窗口计数器算法" class="headerlink" title="2.1. 固定窗口计数器算法"></a>2.1. 固定窗口计数器算法</h2><p>固定窗口计数器算法是一种基本的限流方法，它通过在固定时间窗口内跟踪请求的数量来实现限流。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这是一个简单的实现案例</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">&quot;fmt&quot;</span></span><br><span class="line">  <span class="string">&quot;sync&quot;</span></span><br><span class="line">  <span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// FixedWindowCounter 结构体实现固定窗口计数器限流算法。</span></span><br><span class="line"><span class="comment">// mu 用于同步访问，保证并发安全。</span></span><br><span class="line"><span class="comment">// count 记录当前时间窗口内的请求数量。</span></span><br><span class="line"><span class="comment">// limit 是时间窗口内允许的最大请求数量。</span></span><br><span class="line"><span class="comment">// window 记录当前时间窗口的开始时间。</span></span><br><span class="line"><span class="comment">// duration 是时间窗口的持续时间。</span></span><br><span class="line"><span class="keyword">type</span> FixedWindowCounter <span class="keyword">struct</span> &#123;</span><br><span class="line">  mu        sync.Mutex</span><br><span class="line">  count     <span class="type">int</span></span><br><span class="line">  limit     <span class="type">int</span></span><br><span class="line">  window    time.Time</span><br><span class="line">  duration  time.Duration</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewFixedWindowCounter 构造函数初始化 FixedWindowCounter 实例。</span></span><br><span class="line"><span class="comment">// limit 参数定义了每个时间窗口内允许的请求数量。</span></span><br><span class="line"><span class="comment">// duration 参数定义了时间窗口的大小。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewFixedWindowCounter</span><span class="params">(limit <span class="type">int</span>, duration time.Duration)</span></span> *FixedWindowCounter &#123;</span><br><span class="line">  <span class="keyword">return</span> &amp;FixedWindowCounter&#123;</span><br><span class="line">    limit:   limit,</span><br><span class="line">    window:  time.Now(),   <span class="comment">// 设置当前时间作为窗口的开始时间。</span></span><br><span class="line">    duration: duration,    <span class="comment">// 设置时间窗口的持续时间。</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Allow 方法用于判断当前请求是否被允许。</span></span><br><span class="line"><span class="comment">// 首先通过互斥锁保证方法的原子性。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *FixedWindowCounter)</span></span> Allow() <span class="type">bool</span> &#123;</span><br><span class="line">  f.mu.Lock()</span><br><span class="line">  <span class="keyword">defer</span> f.mu.Unlock()</span><br><span class="line"></span><br><span class="line">  now := time.Now() <span class="comment">// 获取当前时间。</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果当前时间超过了窗口的结束时间，重置计数器和窗口开始时间。</span></span><br><span class="line">  <span class="keyword">if</span> now.After(f.window.Add(f.duration)) &#123;</span><br><span class="line">    f.count = <span class="number">0</span></span><br><span class="line">    f.window = now</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果当前计数小于限制，则增加计数并允许请求。</span></span><br><span class="line">  <span class="keyword">if</span> f.count &lt; f.limit &#123;</span><br><span class="line">    f.count++</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果计数达到限制，则拒绝请求。</span></span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main 函数是程序的入口点。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  <span class="comment">// 创建一个新的限流器，设置每分钟（time.Minute）只允许10个请求。</span></span><br><span class="line">  limiter := NewFixedWindowCounter(<span class="number">10</span>, time.Minute)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 模拟15个请求，观察限流效果。</span></span><br><span class="line">  <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">15</span>; i++ &#123;</span><br><span class="line">    <span class="keyword">if</span> limiter.Allow() &#123;</span><br><span class="line">      fmt.Println(<span class="string">&quot;Request&quot;</span>, i+<span class="number">1</span>, <span class="string">&quot;allowed&quot;</span>)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      fmt.Println(<span class="string">&quot;Request&quot;</span>, i+<span class="number">1</span>, <span class="string">&quot;rejected&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>实现原理</strong>： 固定窗口计数器算法通过设置一个固定的时间窗口（例如每分钟）和一个在这个窗口内允许的请求数量限制（例如10个请求）。在每个时间窗口开始时，计数器重置为零，随着请求的到来，计数器递增。当计数器达到限制时，后续的请求将被拒绝，直到窗口重置。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>实现简单直观。</li>
+<li>容易理解和实现。</li>
+<li>可以保证在任何给定的固定时间窗口内，请求的数量不会超过设定的阈值。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>在窗口切换的瞬间可能会有请求高峰，因为计数器重置可能导致大量请求几乎同时被处理。</li>
+<li>无法平滑地处理突发流量，可能导致服务体验不佳。</li>
+</ul>
+<p>固定窗口计数器算法适用于请求分布相对均匀的场景，但在请求可能在短时间内集中到达的场景下，可能需要考虑更复杂的限流算法，如滑动窗口或令牌桶算法。</p>
+<h2 id="2-2-滑动窗口算法"><a href="#2-2-滑动窗口算法" class="headerlink" title="2.2. 滑动窗口算法"></a>2.2. 滑动窗口算法</h2><p>滑动窗口算法是固定窗口计数器算法的一个改进，它通过覆盖多个时间段来平滑请求流量，避免瞬时高峰。这种算法通常需要使用更高级的数据结构，如时间轮（Timing Wheel），来实现。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这是一个简单的实现案例，这个代码示例仅用于说明滑动窗口限流算法的逻辑，并非完整的工作代码。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">&quot;fmt&quot;</span></span><br><span class="line">  <span class="string">&quot;sync&quot;</span></span><br><span class="line">  <span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// SlidingWindowLimiter 结构体实现滑动窗口限流算法。</span></span><br><span class="line"><span class="keyword">type</span> SlidingWindowLimiter <span class="keyword">struct</span> &#123;</span><br><span class="line">  mutex       sync.Mutex</span><br><span class="line">  counters    []<span class="type">int</span></span><br><span class="line">  limit       <span class="type">int</span></span><br><span class="line">  windowStart time.Time</span><br><span class="line">  windowDuration time.Duration</span><br><span class="line">  interval    time.Duration</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewSlidingWindowLimiter 构造函数初始化 SlidingWindowLimiter 实例。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewSlidingWindowLimiter</span><span class="params">(limit <span class="type">int</span>, windowDuration time.Duration, interval time.Duration)</span></span> *SlidingWindowLimiter &#123;</span><br><span class="line">  buckets := <span class="type">int</span>(windowDuration / interval)</span><br><span class="line">  <span class="keyword">return</span> &amp;SlidingWindowLimiter&#123;</span><br><span class="line">    counters:    <span class="built_in">make</span>([]<span class="type">int</span>, buckets),</span><br><span class="line">    limit:       limit,</span><br><span class="line">    windowStart: time.Now(),</span><br><span class="line">    windowDuration: windowDuration,</span><br><span class="line">    interval:    interval,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Allow 方法用于判断当前请求是否被允许，并实现滑动窗口的逻辑。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SlidingWindowLimiter)</span></span> Allow() <span class="type">bool</span> &#123;</span><br><span class="line">  s.mutex.Lock()</span><br><span class="line">  <span class="keyword">defer</span> s.mutex.Unlock()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 检查是否需要滑动窗口</span></span><br><span class="line">  <span class="keyword">if</span> time.Since(s.windowStart) &gt; s.windowDuration &#123;</span><br><span class="line">    s.slideWindow()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  now := time.Now()</span><br><span class="line">  index := <span class="type">int</span>((now.UnixNano() - s.windowStart.UnixNano()) / s.interval.Nanoseconds()) % <span class="built_in">len</span>(s.counters)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> s.counters[index] &lt; s.limit &#123;</span><br><span class="line">    s.counters[index]++</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// slideWindow 方法实现滑动窗口逻辑，移除最旧的时间段并重置计数器。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SlidingWindowLimiter)</span></span> slideWindow() &#123;</span><br><span class="line">  <span class="comment">// 滑动窗口，忽略最旧的时间段</span></span><br><span class="line">  <span class="built_in">copy</span>(s.counters, s.counters[<span class="number">1</span>:])</span><br><span class="line">  <span class="comment">// 重置最后一个时间段的计数器</span></span><br><span class="line">  s.counters[<span class="built_in">len</span>(s.counters)<span class="number">-1</span>] = <span class="number">0</span></span><br><span class="line">  <span class="comment">// 更新窗口开始时间</span></span><br><span class="line">  s.windowStart = time.Now()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main 函数是程序的入口点。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  limiter := NewSlidingWindowLimiter(<span class="number">1</span>, time.Second, <span class="number">10</span>*time.Millisecond)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">100</span>; i++ &#123;</span><br><span class="line">    <span class="keyword">if</span> limiter.Allow() &#123;</span><br><span class="line">      fmt.Println(<span class="string">&quot;Request&quot;</span>, i+<span class="number">1</span>, <span class="string">&quot;allowed&quot;</span>)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      fmt.Println(<span class="string">&quot;Request&quot;</span>, i+<span class="number">1</span>, <span class="string">&quot;rejected&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>实现原理</strong>：滑动窗口算法通过将时间分为多个小的时间段，每个时间段内维护一个独立的计数器。当一个请求到达时，它会被分配到当前时间所在的小时间段，并检查该时间段的计数器是否已达到限制。如果未达到，则允许请求并增加计数；如果已达到，则拒绝请求。随着时间的推移，旧的时间段会淡出窗口，新的时间段会加入。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>相比固定窗口算法，滑动窗口算法能够更平滑地处理请求，避免瞬时高峰。</li>
+<li>可以提供更细致的流量控制。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>实现相对复杂，需要维护多个计数器和时间索引。</li>
+<li>对内存和计算的要求更高。</li>
+</ul>
+<p>滑动窗口算法适用于需要平滑流量控制的场景，尤其是在面对突发流量时，能够提供比固定窗口计数器更优的流量控制效果。</p>
+<h2 id="2-3-漏桶算法"><a href="#2-3-漏桶算法" class="headerlink" title="2.3. 漏桶算法"></a>2.3. 漏桶算法</h2><p>漏桶算法是一种经典的流量控制方法，特别适合于平滑突发流量，确保数据以均匀的速率被处理。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这是一个简单的实现案例，这个代码示例仅用于说明漏桶算法的基本逻辑，并非完整的工作代码。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// LeakyBucket 结构体，包含请求队列</span></span><br><span class="line"><span class="keyword">type</span> LeakyBucket <span class="keyword">struct</span> &#123;</span><br><span class="line">    queue <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125; <span class="comment">// 请求队列</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewLeakyBucket 创建一个新的漏桶实例</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewLeakyBucket</span><span class="params">(capacity <span class="type">int</span>)</span></span> *LeakyBucket &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;LeakyBucket&#123;</span><br><span class="line">       queue: <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, capacity),</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// push 将请求放入队列，如果队列满了，返回 false，表示请求被丢弃</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(lb *LeakyBucket)</span></span> push() <span class="type">bool</span> &#123;</span><br><span class="line">    <span class="comment">// 如果通道可以发送，请求被接受</span></span><br><span class="line">    <span class="keyword">select</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> lb.queue &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;:</span><br><span class="line">       <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">       <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// process 从队列中取出请求并模拟处理过程</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(lb *LeakyBucket)</span></span> process() &#123;</span><br><span class="line">    <span class="keyword">for</span> <span class="keyword">range</span> lb.queue &#123; <span class="comment">// 使用 range 来持续接收队列中的请求</span></span><br><span class="line">       fmt.Println(<span class="string">&quot;Request processed at&quot;</span>, time.Now().Format(<span class="string">&quot;2006-01-02 15:04:05&quot;</span>))</span><br><span class="line">       time.Sleep(<span class="number">100</span> * time.Millisecond) <span class="comment">// 模拟请求处理时间</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    lb := NewLeakyBucket(<span class="number">5</span>) <span class="comment">// 创建一个容量为5的漏桶</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 启动请求处理循环</span></span><br><span class="line">    <span class="keyword">go</span> lb.process()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 模拟请求</span></span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;</span><br><span class="line">       accepted := lb.push()</span><br><span class="line">       <span class="keyword">if</span> accepted &#123;</span><br><span class="line">          fmt.Printf(<span class="string">&quot;Request %d accepted at %v\n&quot;</span>, i+<span class="number">1</span>, time.Now().Format(<span class="string">&quot;2006-01-02 15:04:05&quot;</span>))</span><br><span class="line">       &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          fmt.Printf(<span class="string">&quot;Request %d rejected at %v\n&quot;</span>, i+<span class="number">1</span>, time.Now().Format(<span class="string">&quot;2006-01-02 15:04:05&quot;</span>))</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    time.Sleep(<span class="number">2</span> * time.Second)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>实现原理</strong>：通过一个固定容量的队列来模拟桶，以恒定速率从桶中取出请求进行处理，无论请求到达的频率如何，都保证请求以均匀的速度被处理，从而平滑流量并防止流量突增。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>能够强制实现固定的数据处理速率，平滑流量。</li>
+<li>即使面对突发流量，也能保持稳定的处理速率。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>对于突发流量的处理不够灵活，可能会延迟处理。</li>
+<li>实现相对简单，但需要维护桶的状态。</li>
+</ul>
+<p>漏桶算法适用于需要强制执行固定速率处理的场景，如网络流量控制、API 请求限制等。通过控制令牌的添加速率，漏桶算法能够有效地避免系统因瞬时流量高峰而过载。</p>
+<h2 id="2-4-令牌桶算法"><a href="#2-4-令牌桶算法" class="headerlink" title="2.4. 令牌桶算法"></a>2.4. 令牌桶算法</h2><p>令牌桶算法是一种流行的限流算法，它允许一定程度的突发流量，同时保持长期的平均速率。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这是一个简单的实现案例，这个代码示例仅用于说明令牌桶算法的基本逻辑，并非完整的工作代码。</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">    <span class="string">&quot;sync&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// TokenBucket 结构体实现令牌桶限流算法。</span></span><br><span class="line"><span class="comment">// - mu 用于同步访问，保证并发安全。</span></span><br><span class="line"><span class="comment">// - capacity 定义桶的容量，即桶中最多可以存放的令牌数。</span></span><br><span class="line"><span class="comment">// - tokens 表示桶中当前的令牌数。</span></span><br><span class="line"><span class="comment">// - refillRate 是令牌的填充速率，表示每秒向桶中添加的令牌数。</span></span><br><span class="line"><span class="comment">// - lastRefill 记录上次填充令牌的时间。</span></span><br><span class="line"><span class="keyword">type</span> TokenBucket <span class="keyword">struct</span> &#123;</span><br><span class="line">    mu         sync.Mutex</span><br><span class="line">    capacity   <span class="type">int</span></span><br><span class="line">    tokens     <span class="type">int</span></span><br><span class="line">    refillRate <span class="type">float64</span></span><br><span class="line">    lastRefill time.Time</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewTokenBucket 构造函数初始化 TokenBucket 实例。</span></span><br><span class="line"><span class="comment">// - capacity 参数定义了桶的容量。</span></span><br><span class="line"><span class="comment">// - refillRate 参数定义了每秒向桶中添加的令牌数。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewTokenBucket</span><span class="params">(capacity <span class="type">int</span>, refillRate <span class="type">float64</span>)</span></span> *TokenBucket &#123;</span><br><span class="line">    <span class="comment">// 初始化时桶被填满，tokens 和 capacity 相等。</span></span><br><span class="line">    <span class="comment">// lastRefill 设置为当前时间。</span></span><br><span class="line">    <span class="keyword">return</span> &amp;TokenBucket&#123;</span><br><span class="line">       capacity:   capacity,</span><br><span class="line">       tokens:     capacity,</span><br><span class="line">       refillRate: refillRate,</span><br><span class="line">       lastRefill: time.Now(),</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Allow 方法用于判断当前请求是否被允许。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *TokenBucket)</span></span> Allow() <span class="type">bool</span> &#123;</span><br><span class="line">    t.mu.Lock() <span class="comment">// 进入临界区，确保操作的原子性。</span></span><br><span class="line">    <span class="keyword">defer</span> t.mu.Unlock()</span><br><span class="line"></span><br><span class="line">    now := time.Now() <span class="comment">// 获取当前时间。</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 计算自上次填充以来经过的秒数，并转换为float64类型。</span></span><br><span class="line">    timeElapsed := <span class="type">float64</span>(now.Unix() - t.lastRefill.Unix())</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 根据 refillRate 计算应该添加的令牌数。</span></span><br><span class="line">    tokensToAdd := t.refillRate * timeElapsed</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 更新令牌数，但不超过桶的容量。</span></span><br><span class="line">    t.tokens += <span class="type">int</span>(tokensToAdd)</span><br><span class="line">    <span class="keyword">if</span> t.tokens &gt; t.capacity &#123;</span><br><span class="line">       t.tokens = t.capacity <span class="comment">// 确保令牌数不超过桶的容量。</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果桶中有令牌，则移除一个令牌并允许请求通过。</span></span><br><span class="line">    <span class="keyword">if</span> t.tokens &gt; <span class="number">0</span> &#123;</span><br><span class="line">       t.tokens--         <span class="comment">// 移除一个令牌。</span></span><br><span class="line">       t.lastRefill = now <span class="comment">// 更新上次填充时间到当前时间。</span></span><br><span class="line">       <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果桶中无令牌，则请求被拒绝。</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main 函数是程序的入口点。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 创建一个新的令牌桶实例，桶的容量为10，每秒填充2个令牌。</span></span><br><span class="line">    limiter := NewTokenBucket(<span class="number">10</span>, <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 模拟请求，观察限流效果。</span></span><br><span class="line">    <span class="comment">// 循环15次，每次请求判断是否被允许。</span></span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">15</span>; i++ &#123;</span><br><span class="line">       <span class="keyword">if</span> limiter.Allow() &#123;</span><br><span class="line">          fmt.Println(<span class="string">&quot;Request&quot;</span>, i+<span class="number">1</span>, <span class="string">&quot;allowed&quot;</span>)</span><br><span class="line">       &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          fmt.Println(<span class="string">&quot;Request&quot;</span>, i+<span class="number">1</span>, <span class="string">&quot;rejected&quot;</span>)</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>实现原理</strong>：令牌桶算法使用一个令牌桶来调节数据流的速率，允许一定程度的流量突发。桶初始时为空，并以固定的速率填充令牌，直至达到预设的容量上限。与漏桶算法不同，令牌桶算法在桶未满时，可以在每个时间间隔内向桶中添加多个令牌，从而积累处理突发请求的能力。当请求到达时，如果桶中存在令牌，算法会从桶中移除相应数量的令牌来处理请求。如果桶中的令牌不足，请求将被延迟处理或根据策略拒绝服务。如果桶已满，额外的令牌将不会被添加，确保了令牌数量不会超过桶的容量限制。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>允许一定程度的突发流量，更加灵活。</li>
+<li>可以平滑流量，同时在桶未满时快速处理请求。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>实现相对复杂，需要维护桶的状态和时间。</li>
+<li>对于计算和同步的要求更高。</li>
+</ul>
+<p>令牌桶算法适用于需要处理突发流量的场景，如网络通信、API 调用等。通过控制令牌的填充速率和桶的容量，令牌桶算法能够有效地平衡流量，防止系统过载，同时允许在短期内处理更多的请求。</p>
+<h1 id="3-限流的实现方式"><a href="#3-限流的实现方式" class="headerlink" title="3. 限流的实现方式"></a>3. 限流的实现方式</h1><p>限流可以通过不同的组件和层次实现。</p>
+<h2 id="3-1-应用层限流"><a href="#3-1-应用层限流" class="headerlink" title="3.1. 应用层限流"></a>3.1. 应用层限流</h2><p>应用层限流是在应用程序的代码中直接实现限流逻辑，这通常是通过使用中间件来完成的。中间件可以在处理请求之前先进行限流检查，以决定是否继续处理请求或者返回错误信息。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这是一个伪代码案例，演示实现逻辑</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">&quot;fmt&quot;</span></span><br><span class="line">  <span class="string">&quot;github.com/gin-gonic/gin&quot;</span> <span class="comment">// 引入Gin框架，用于构建Web服务器和处理HTTP请求</span></span><br><span class="line">  <span class="string">&quot;net/http&quot;</span></span><br><span class="line">  <span class="string">&quot;sync&quot;</span>                <span class="comment">// 引入sync包，用于同步原语，如互斥锁</span></span><br><span class="line">  <span class="string">&quot;time&quot;</span>                 <span class="comment">// 引入time包，用于时间相关操作</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// TokenBucket 结构体实现令牌桶限流算法。</span></span><br><span class="line"><span class="comment">// 它包含互斥锁mu用于同步访问，capacity代表桶的容量，</span></span><br><span class="line"><span class="comment">// tokens表示当前桶中的令牌数，refillRate是令牌的填充速率（每秒），</span></span><br><span class="line"><span class="comment">// lastRefill记录上次填充的时间。</span></span><br><span class="line"><span class="keyword">type</span> TokenBucket <span class="keyword">struct</span> &#123;</span><br><span class="line">  mu        sync.Mutex</span><br><span class="line">  capacity  <span class="type">int</span></span><br><span class="line">  tokens    <span class="type">int</span></span><br><span class="line">  refillRate <span class="type">float64</span></span><br><span class="line">  lastRefill time.Time</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewTokenBucket 函数创建并初始化一个新的TokenBucket实例。</span></span><br><span class="line"><span class="comment">// 它设置桶的容量和填充速率，并将初始令牌数设为容量的值。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewTokenBucket</span><span class="params">(capacity <span class="type">int</span>, refillRate <span class="type">float64</span>)</span></span> *TokenBucket &#123;</span><br><span class="line">  <span class="keyword">return</span> &amp;TokenBucket&#123;</span><br><span class="line">    capacity:  capacity,</span><br><span class="line">    tokens:    capacity,  <span class="comment">// 初始化时桶被填满</span></span><br><span class="line">    refillRate: refillRate,</span><br><span class="line">    lastRefill: time.Now(), <span class="comment">// 记录创建时的时间作为上次填充时间</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Allow 方法用于检查是否允许通过当前请求。</span></span><br><span class="line"><span class="comment">// 它首先获取锁，然后计算自上次填充以来应该添加的令牌数，</span></span><br><span class="line"><span class="comment">// 更新桶中的令牌数，但不超过桶的容量。</span></span><br><span class="line"><span class="comment">// 如果桶中至少有一个令牌，它将减少一个令牌并返回true，表示请求被允许。</span></span><br><span class="line"><span class="comment">// 如果桶为空，则返回false，表示请求被拒绝。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tb *TokenBucket)</span></span> Allow() <span class="type">bool</span> &#123;</span><br><span class="line">  tb.mu.Lock() <span class="comment">// 获取锁，保证操作的原子性</span></span><br><span class="line">  <span class="keyword">defer</span> tb.mu.Unlock()</span><br><span class="line"></span><br><span class="line">  now := time.Now() <span class="comment">// 获取当前时间</span></span><br><span class="line">  <span class="comment">// 计算自上次填充以来经过的秒数，然后乘以填充速率，得到应添加的令牌数</span></span><br><span class="line">  tokensToAdd := <span class="type">int</span>(tb.refillRate * (now.Sub(tb.lastRefill).Seconds()))</span><br><span class="line">  tb.tokens += tokensToAdd <span class="comment">// 更新桶中的令牌数</span></span><br><span class="line">  <span class="keyword">if</span> tb.tokens &gt; tb.capacity &#123;</span><br><span class="line">    tb.tokens = tb.capacity <span class="comment">// 确保不超过桶的容量</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> tb.tokens &gt; <span class="number">0</span> &#123;</span><br><span class="line">    tb.tokens-- <span class="comment">// 处理请求，减少一个令牌</span></span><br><span class="line">    tb.lastRefill = now <span class="comment">// 更新上次填充时间为当前时间</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span> <span class="comment">// 如果桶为空，返回false</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Middleware 函数返回一个Gin中间件，该中间件使用TokenBucket来限流。</span></span><br><span class="line"><span class="comment">// 如果TokenBucket的Allow方法返回false，中间件将中断请求处理，</span></span><br><span class="line"><span class="comment">// 并返回HTTP状态码429（Too Many Requests）和错误信息。</span></span><br><span class="line"><span class="comment">// 如果请求被允许，中间件将调用c.Next()继续执行后续的处理链。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Middleware</span><span class="params">(tb *TokenBucket)</span></span> gin.HandlerFunc &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">    <span class="comment">// 在处理请求之前，调用TokenBucket的Allow方法检查是否允许请求</span></span><br><span class="line">    <span class="keyword">if</span> !tb.Allow() &#123;</span><br><span class="line">      <span class="comment">// 如果请求被限流，返回错误信息和状态码</span></span><br><span class="line">      c.JSON(http.StatusTooManyRequests, gin.H&#123;<span class="string">&quot;error&quot;</span>: <span class="string">&quot;too many requests&quot;</span>&#125;)</span><br><span class="line">      c.Abort() <span class="comment">// 中断请求处理</span></span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果请求未被限流，继续执行后续的处理链</span></span><br><span class="line">    c.Next()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  <span class="comment">// 创建一个Gin的默认实例，用于Web服务</span></span><br><span class="line">  r := gin.Default()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建TokenBucket实例，用于限流控制</span></span><br><span class="line">  tb := NewTokenBucket(<span class="number">10</span>, <span class="number">1.0</span>) <span class="comment">// 桶的容量为10，每秒填充1个令牌</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 使用上面定义的限流中间件</span></span><br><span class="line">  r.Use(Middleware(tb))</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 定义一个简单的路由，当访问/hello路径时，返回JSON格式的消息</span></span><br><span class="line">  r.GET(<span class="string">&quot;/hello&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">    c.JSON(http.StatusOK, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;hello world&quot;</span>&#125;)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 启动Gin服务器，默认监听在0.0.0.0:8080</span></span><br><span class="line">  r.Run()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>实现原理</strong>：在 Web 应用程序中，限流可以通过中间件实现。中间件在处理 HTTP 请求之前先执行，可以用来进行身份验证、日志记录、限流等操作。在上述代码中，创建了一个 TokenBucket 类型的限流器，并实现了一个 Middleware 函数，该函数接收一个 TokenBucket 实例作为参数，并返回一个 Gin 中间件处理器。中间件在处理请求时首先调用 Allow 方法检查是否允许请求通过。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>易于实现和集成，可以轻松地添加到现有的 Web 应用程序中。</li>
+<li>细粒度控制，可以针对不同的路由或用户应用不同的限流策略。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>可能会增加请求处理的延迟，因为中间件需要在每次请求时进行同步操作。</li>
+<li>如果不恰当地使用，可能会降低应用程序的并发处理能力。</li>
+</ul>
+<p>应用层限流适用于需要细粒度控制的场景，允许开发者根据具体的业务需求定制限流策略。通过合理配置限流器的参数，可以在保证服务质量的同时，提高应用程序的吞吐量和稳定性。</p>
+<h2 id="3-2-代理层限流"><a href="#3-2-代理层限流" class="headerlink" title="3.2. 代理层限流"></a>3.2. 代理层限流</h2><p>代理层限流是在网络通信的代理服务器层面实现限流，例如使用 Nginx 或 HAProxy 等代理服务器。这种方法可以在请求到达后端服务之前对它们进行限制，从而保护后端服务不受过多请求的冲击。</p>
+<p>Nginx 配置示例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">http &#123;</span><br><span class="line">    # 定义一个限流区域，使用共享内存存储状态</span><br><span class="line">    limit_req_zone $binary_remote_addr zone=mylimit:10m rate=1r/s;</span><br><span class="line"></span><br><span class="line">    server &#123;</span><br><span class="line">        # 监听80端口</span><br><span class="line">        listen 80;</span><br><span class="line"></span><br><span class="line">        # 定义一个location块，用于匹配特定的请求路径</span><br><span class="line">        location /api/ &#123;</span><br><span class="line">            # 应用限流规则</span><br><span class="line">            limit_req zone=mylimit burst=5 nodelay;</span><br><span class="line"></span><br><span class="line">            # 代理请求到后端服务</span><br><span class="line">            proxy_pass http://backend/;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>实现原理</strong>：在 Nginx 中，通过定义 limit_req_zone 指令创建一个限流区域，并指定使用共享内存来存储客户端 IP 地址和对应的请求计数。rate 参数定义了每个客户端每秒钟允许的请求数量。在 server 块中，使用 limit_req 指令引用之前定义的限流区域，并设置 burst 参数允许一定数量的突发请求。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>在网络层面进行限流，可以保护所有后端服务，而不需要在每个应用程序中单独实现限流逻辑。</li>
+<li>减轻了后端服务的负担，因为多余的请求在到达后端之前就被拒绝了。</li>
+<li>配置灵活，可以针对不同的请求路径和客户端设置不同的限流规则。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>需要代理服务器支持限流功能，可能需要额外的配置和调优。</li>
+<li>对于分布式系统，可能需要额外的机制来同步状态，确保全局的限流效果。</li>
+</ul>
+<p>代理层限流适用于需要在多个服务或整个应用层面控制请求的场景。通过合理配置代理服务器的限流规则，可以在不同的层面上保护系统，提高整体的稳定性和可用性。</p>
+<h2 id="3-3-硬件层限流"><a href="#3-3-硬件层限流" class="headerlink" title="3.3. 硬件层限流"></a>3.3. 硬件层限流</h2><p>在硬件层（如负载均衡器）实现限流，可以在请求到达应用服务器之前进行控制。</p>
+<h1 id="4-限流策略"><a href="#4-限流策略" class="headerlink" title="4. 限流策略"></a>4. 限流策略</h1><p>限流策略是确保应用程序能够处理预期负载并防止过载的一系列规则和措施。</p>
+<h2 id="4-1-阈值设置"><a href="#4-1-阈值设置" class="headerlink" title="4.1. 阈值设置"></a>4.1. 阈值设置</h2><p>阈值设置是限流策略的基础，它决定了系统在单位时间内能够处理的最大请求数量。</p>
+<p>伪代码示例：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RateLimiterV2 结构体增加了阈值设置功能。</span></span><br><span class="line"><span class="keyword">type</span> RateLimiterV2 <span class="keyword">struct</span> &#123;</span><br><span class="line">    mu     sync.Mutex</span><br><span class="line">    tokens <span class="type">int</span></span><br><span class="line">    capacity  <span class="type">int</span>      <span class="comment">// 桶的容量，代表最大令牌数</span></span><br><span class="line">    refillRate <span class="type">float64</span> <span class="comment">// 每秒填充的令牌数</span></span><br><span class="line">    limit     <span class="type">int</span>      <span class="comment">// 请求处理的阈值，即桶的容量</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewRateLimiterV2 创建一个新的RateLimiterV2实例，并设置阈值。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewRateLimiterV2</span><span class="params">(capacity <span class="type">int</span>, refillRate <span class="type">float64</span>, limit <span class="type">int</span>)</span></span> *RateLimiterV2 &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;RateLimiterV2&#123;</span><br><span class="line">        capacity:  capacity,</span><br><span class="line">        refillRate: refillRate,</span><br><span class="line">        limit:     limit,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Allow 现在考虑了设置的阈值。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *RateLimiterV2)</span></span> Allow() <span class="type">bool</span> &#123;</span><br><span class="line">    r.mu.Lock()</span><br><span class="line">    <span class="keyword">defer</span> r.mu.Unlock()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 令牌桶逻辑...</span></span><br><span class="line">    <span class="comment">// 如果桶中的令牌数达到或超过阈值，则拒绝请求。</span></span><br><span class="line">    <span class="keyword">if</span> r.tokens &gt;= r.limit &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 允许请求逻辑...</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-2-请求分类"><a href="#4-2-请求分类" class="headerlink" title="4.2. 请求分类"></a>4.2. 请求分类</h2><p>请求分类允许对不同类型的请求应用不同的限流规则，例如，对 API 的不同端点设置不同的阈值。</p>
+<p>伪代码示例：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RouteLimiterMap 是一个映射，存储每个路由路径对应的限流器实例。</span></span><br><span class="line"><span class="comment">// 键是路由的字符串表示，值是指向RateLimiterV2类型实例的指针。</span></span><br><span class="line"><span class="keyword">var</span> RouteLimiterMap = <span class="keyword">map</span>[<span class="type">string</span>]*RateLimiterV2&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// SetRateLimiterForRoute 函数为指定的路由设置一个新的限流器。</span></span><br><span class="line"><span class="comment">// 它接受路由的路径、桶的容量、每秒填充的令牌数和请求处理的阈值作为参数，</span></span><br><span class="line"><span class="comment">// 并创建一个新的RateLimiterV2实例，将其存储在RouteLimiterMap中。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetRateLimiterForRoute</span><span class="params">(route <span class="type">string</span>, capacity <span class="type">int</span>, refillRate <span class="type">float64</span>, limit <span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    <span class="comment">// 在RouteLimiterMap中为给定的路由创建或更新限流器实例。</span></span><br><span class="line">    RouteLimiterMap[route] = NewRateLimiterV2(capacity, refillRate, limit)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MiddlewareWithRoute 函数返回一个Gin中间件处理函数。</span></span><br><span class="line"><span class="comment">// 该中间件基于路由名称来应用限流逻辑。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MiddlewareWithRoute</span><span class="params">(route <span class="type">string</span>)</span></span> gin.HandlerFunc &#123;</span><br><span class="line">    <span class="comment">// 返回一个Gin的处理函数，该函数内部封装了限流逻辑。</span></span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 检查RouteLimiterMap中是否存在对应路由的限流器。</span></span><br><span class="line">        <span class="comment">// 如果存在，调用其Allow方法来决定当前请求是否应该被允许。</span></span><br><span class="line">        <span class="keyword">if</span> !RouteLimiterMap[route].Allow() &#123;</span><br><span class="line">            <span class="comment">// 如果请求被限流（不允许），返回HTTP 429状态码和错误信息。</span></span><br><span class="line">            c.JSON(http.StatusTooManyRequests, gin.H&#123;<span class="string">&quot;error&quot;</span>: <span class="string">&quot;too many requests&quot;</span>&#125;)</span><br><span class="line">            c.Abort() <span class="comment">// 中断请求的进一步处理。</span></span><br><span class="line">            <span class="keyword">return</span>    <span class="comment">// 退出中间件函数。</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 如果请求未被限流，调用c.Next继续执行Gin的处理链。</span></span><br><span class="line">        c.Next()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-3-反馈机制"><a href="#4-3-反馈机制" class="headerlink" title="4.3. 反馈机制"></a>4.3. 反馈机制</h2><p>反馈机制在请求被限流时向用户提供适当的反馈，如错误消息或重试后的时间。</p>
+<p>伪代码示例：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AllowWithFeedback 提供反馈的请求允许逻辑。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *RateLimiterV2)</span></span> AllowWithFeedback() (<span class="type">bool</span>, <span class="type">string</span>) &#123;</span><br><span class="line">    r.mu.Lock()</span><br><span class="line">    <span class="keyword">defer</span> r.mu.Unlock()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 令牌桶逻辑...</span></span><br><span class="line">    <span class="keyword">if</span> r.tokens &gt;= r.limit &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>, <span class="string">&quot;Too many requests. Please try again later.&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 允许请求逻辑...</span></span><br><span class="line">    r.tokens-- <span class="comment">// 移除令牌</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>, <span class="string">&quot;&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用反馈机制的中间件。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MiddlewareWithFeedback</span><span class="params">()</span></span> gin.HandlerFunc &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">        allowed, message := RouteLimiterMap[<span class="string">&quot;/api/&quot;</span>].AllowWithFeedback()</span><br><span class="line">        <span class="keyword">if</span> !allowed &#123;</span><br><span class="line">            c.JSON(http.StatusTooManyRequests, gin.H&#123;<span class="string">&quot;error&quot;</span>: message&#125;)</span><br><span class="line">            c.Abort()</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">        c.Next()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="5-限流的考虑因素"><a href="#5-限流的考虑因素" class="headerlink" title="5. 限流的考虑因素"></a>5. 限流的考虑因素</h1><p>在设计和实施限流机制时，需要综合考虑多个关键因素以确保限流系统的有效性和公平性。</p>
+<h2 id="5-1-公平性"><a href="#5-1-公平性" class="headerlink" title="5.1. 公平性"></a>5.1. 公平性</h2><p>公平性是限流设计中的首要原则，确保所有用户和客户端能够平等地访问服务。</p>
+<p>伪代码示例：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// FairLimiter 结构体实现基于用户ID或IP的公平限流。</span></span><br><span class="line"><span class="keyword">type</span> FairLimiter <span class="keyword">struct</span> &#123;</span><br><span class="line">    sync.Mutex</span><br><span class="line">    limits <span class="keyword">map</span>[<span class="type">string</span>]*RateLimiterV2 <span class="comment">// 为每个用户或IP维护一个独立的限流器</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewFairLimiter 创建一个新的FairLimiter实例。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewFairLimiter</span><span class="params">(capacity <span class="type">int</span>, refillRate <span class="type">float64</span>)</span></span> *FairLimiter &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;FairLimiter&#123;</span><br><span class="line">        limits: <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]*RateLimiterV2),</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Allow 根据用户ID或IP决定是否允许请求。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *FairLimiter)</span></span> Allow(userID <span class="type">string</span>) (<span class="type">bool</span>, <span class="type">string</span>) &#123;</span><br><span class="line">    f.Lock()</span><br><span class="line">    <span class="keyword">defer</span> f.Unlock()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> _, exists := f.limits[userID]; !exists &#123;</span><br><span class="line">        <span class="comment">// 如果用户没有限流器，则创建一个新的。</span></span><br><span class="line">        f.limits[userID] = NewRateLimiterV2(capacity, refillRate, limit)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用用户的限流器检查请求。</span></span><br><span class="line">    <span class="keyword">return</span> f.limits[userID].AllowWithFeedback()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-2-灵活性"><a href="#5-2-灵活性" class="headerlink" title="5.2. 灵活性"></a>5.2. 灵活性</h2><p>灵活性意味着限流策略能够适应不同的流量模式和业务需求，例如在高流量期间放宽限制。</p>
+<p>伪代码示例：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// FlexibleLimiter 结构体是一个灵活的限流器，允许在运行时动态调整限流参数。</span></span><br><span class="line"><span class="keyword">type</span> FlexibleLimiter <span class="keyword">struct</span> &#123;</span><br><span class="line">    sync.Mutex <span class="comment">// 使用sync.Mutex提供互斥锁功能，确保线程安全。</span></span><br><span class="line">    capacity  <span class="type">int</span>  <span class="comment">// 桶的容量，表示最多可以存储的令牌数。</span></span><br><span class="line">    refillRate <span class="type">float64</span> <span class="comment">// 令牌的填充速率，表示每秒可以新增的令牌数。</span></span><br><span class="line">    limit      <span class="type">int</span>  <span class="comment">// 请求处理的阈值，用于确定是否限流。</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// SetParams 方法允许动态设置FlexibleLimiter的限流参数。</span></span><br><span class="line"><span class="comment">// 这些参数包括桶的容量、填充速率和请求处理的阈值。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *FlexibleLimiter)</span></span> SetParams(capacity <span class="type">int</span>, refillRate <span class="type">float64</span>, limit <span class="type">int</span>) &#123;</span><br><span class="line">    f.Lock() <span class="comment">// 使用互斥锁进入临界区，防止并发访问导致的数据不一致。</span></span><br><span class="line">    <span class="keyword">defer</span> f.Unlock() <span class="comment">// 离开临界区前自动释放锁。</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 更新FlexibleLimiter的参数。</span></span><br><span class="line">    f.capacity, f.refillRate, f.limit = capacity, refillRate, limit</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Allow 方法根据FlexibleLimiter当前的参数决定是否允许新的请求。</span></span><br><span class="line"><span class="comment">// 它首先基于当前参数创建一个新的RateLimiterV2实例，然后调用它的AllowWithFeedback方法。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *FlexibleLimiter)</span></span> Allow() (<span class="type">bool</span>, <span class="type">string</span>) &#123;</span><br><span class="line">    <span class="comment">// 根据FlexibleLimiter当前的容量、填充速率和阈值创建一个新的RateLimiterV2实例。</span></span><br><span class="line">    rl := NewRateLimiterV2(f.capacity, f.refillRate, f.limit)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 调用RateLimiterV2的AllowWithFeedback方法，获取是否允许请求的反馈。</span></span><br><span class="line">    <span class="comment">// 这个方法返回一个布尔值表示是否允许请求，和一个字符串消息提供反馈信息。</span></span><br><span class="line">    <span class="keyword">return</span> rl.AllowWithFeedback()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-3-透明性"><a href="#5-3-透明性" class="headerlink" title="5.3. 透明性"></a>5.3. 透明性</h2><p>透明性要求限流规则和当前状态对用户可见，使用户能够了解他们被限流的原因和情况。</p>
+<p>伪代码示例：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// TransparentLimiter 结构体嵌入了RateLimiterV2，提供了额外的状态信息，</span></span><br><span class="line"><span class="comment">// 包括当前剩余的令牌数，以增强限流机制的透明性。</span></span><br><span class="line"><span class="keyword">type</span> TransparentLimiter <span class="keyword">struct</span> &#123;</span><br><span class="line">    *RateLimiterV2 <span class="comment">// 嵌入RateLimiterV2，获得其所有功能。</span></span><br><span class="line">    currentTokens <span class="type">int</span> <span class="comment">// 存储当前桶中剩余的令牌数。</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// AllowWithStatus 方法允许请求并返回当前限流状态。</span></span><br><span class="line"><span class="comment">// 它调用内嵌RateLimiterV2的AllowWithFeedback方法来决定是否允许请求，</span></span><br><span class="line"><span class="comment">// 并获取反馈消息，同时返回当前剩余的令牌数。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *TransparentLimiter)</span></span> AllowWithStatus() (<span class="type">bool</span>, <span class="type">string</span>, <span class="type">int</span>) &#123;</span><br><span class="line">    allowed, message := t.RateLimiterV2.AllowWithFeedback() <span class="comment">// 调用内嵌限流器的允许逻辑。</span></span><br><span class="line">    <span class="keyword">return</span> allowed, message, t.currentTokens <span class="comment">// 返回是否允许、消息和当前令牌数。</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MiddlewareWithTransparency 函数创建一个中间件，用于在HTTP响应中包含限流状态。</span></span><br><span class="line"><span class="comment">// 这个中间件包装了下一个http.Handler，并在处理请求之前检查限流状态。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MiddlewareWithTransparency</span><span class="params">(next http.Handler)</span></span> http.Handler &#123;</span><br><span class="line">    <span class="keyword">return</span> http.HandlerFunc(<span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 创建或使用全局的transparentLimiter实例来检查限流状态。</span></span><br><span class="line">        allowed, message, tokens := transparentLimiter.AllowWithStatus()</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果请求被限流（不允许），则设置HTTP头部信息和状态码，并返回错误消息。</span></span><br><span class="line">        <span class="keyword">if</span> !allowed &#123;</span><br><span class="line">            w.Header().Set(<span class="string">&quot;X-RateLimit-Remaining&quot;</span>, fmt.Sprintf(<span class="string">&quot;%d&quot;</span>, tokens)) <span class="comment">// 设置剩余令牌数的头部。</span></span><br><span class="line">            w.WriteHeader(http.StatusTooManyRequests)                             <span class="comment">// 设置HTTP状态码为429。</span></span><br><span class="line">            fmt.Fprintln(w, message)                                            <span class="comment">// 写入错误消息到响应体。</span></span><br><span class="line">            <span class="keyword">return</span>                                                                <span class="comment">// 中断请求处理。</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果请求未被限流，继续执行后续的处理链。</span></span><br><span class="line">        next.ServeHTTP(w, r)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9E%B6%E6%9E%84/" rel="tag"># 架构</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/11/24/RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/" rel="prev" title="RAG大模型的技术框架">
+      <i class="fa fa-chevron-left"></i> RAG大模型的技术框架
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/03/10/%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="next" title="向量数据库">
+      向量数据库 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E9%99%90%E6%B5%81%E7%9A%84%E7%9B%AE%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">1. 限流的目的</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">2. 限流算法的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E5%9B%BA%E5%AE%9A%E7%AA%97%E5%8F%A3%E8%AE%A1%E6%95%B0%E5%99%A8%E7%AE%97%E6%B3%95"><span class="nav-number">2.1.</span> <span class="nav-text">2.1. 固定窗口计数器算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%E7%AE%97%E6%B3%95"><span class="nav-number">2.2.</span> <span class="nav-text">2.2. 滑动窗口算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E6%BC%8F%E6%A1%B6%E7%AE%97%E6%B3%95"><span class="nav-number">2.3.</span> <span class="nav-text">2.3. 漏桶算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-%E4%BB%A4%E7%89%8C%E6%A1%B6%E7%AE%97%E6%B3%95"><span class="nav-number">2.4.</span> <span class="nav-text">2.4. 令牌桶算法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E9%99%90%E6%B5%81%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">3. 限流的实现方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E5%BA%94%E7%94%A8%E5%B1%82%E9%99%90%E6%B5%81"><span class="nav-number">3.1.</span> <span class="nav-text">3.1. 应用层限流</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-%E4%BB%A3%E7%90%86%E5%B1%82%E9%99%90%E6%B5%81"><span class="nav-number">3.2.</span> <span class="nav-text">3.2. 代理层限流</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-%E7%A1%AC%E4%BB%B6%E5%B1%82%E9%99%90%E6%B5%81"><span class="nav-number">3.3.</span> <span class="nav-text">3.3. 硬件层限流</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E9%99%90%E6%B5%81%E7%AD%96%E7%95%A5"><span class="nav-number">4.</span> <span class="nav-text">4. 限流策略</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E9%98%88%E5%80%BC%E8%AE%BE%E7%BD%AE"><span class="nav-number">4.1.</span> <span class="nav-text">4.1. 阈值设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E8%AF%B7%E6%B1%82%E5%88%86%E7%B1%BB"><span class="nav-number">4.2.</span> <span class="nav-text">4.2. 请求分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6"><span class="nav-number">4.3.</span> <span class="nav-text">4.3. 反馈机制</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E9%99%90%E6%B5%81%E7%9A%84%E8%80%83%E8%99%91%E5%9B%A0%E7%B4%A0"><span class="nav-number">5.</span> <span class="nav-text">5. 限流的考虑因素</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-%E5%85%AC%E5%B9%B3%E6%80%A7"><span class="nav-number">5.1.</span> <span class="nav-text">5.1. 公平性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-%E7%81%B5%E6%B4%BB%E6%80%A7"><span class="nav-number">5.2.</span> <span class="nav-text">5.2. 灵活性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3-%E9%80%8F%E6%98%8E%E6%80%A7"><span class="nav-number">5.3.</span> <span class="nav-text">5.3. 透明性</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

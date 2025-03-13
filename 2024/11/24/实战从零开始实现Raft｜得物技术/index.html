@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Raft">
+<meta property="og:type" content="article">
+<meta property="og:title" content="实战从零开始实现Raft｜得物技术">
+<meta property="og:url" content="http://example.com/2024/11/24/%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Raft">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/image_1.webp">
+<meta property="og:image" content="http://example.com/%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/image_2.webp">
+<meta property="article:published_time" content="2024-11-24T14:05:59.000Z">
+<meta property="article:modified_time" content="2024-11-25T15:01:31.127Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="分布式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/image_1.webp">
+
+<link rel="canonical" href="http://example.com/2024/11/24/%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>实战从零开始实现Raft｜得物技术 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/24/%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          实战从零开始实现Raft｜得物技术
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-11-24 22:05:59" itemprop="dateCreated datePublished" datetime="2024-11-24T22:05:59+08:00">2024-11-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-11-25 23:01:31" itemprop="dateModified" datetime="2024-11-25T23:01:31+08:00">2024-11-25</time>
+              </span>
+
+          
+            <div class="post-description">Raft</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/R2XXYFoR67VsiGwT6XM96A">https://mp.weixin.qq.com/s/R2XXYFoR67VsiGwT6XM96A</a><br>收集时间：2024-11-24</p>
+</blockquote>
+<h1 id="1-前言"><a href="#1-前言" class="headerlink" title="1. 前言"></a>1. 前言</h1><p>Raft算法是一种分布式一致性算法，由Diego Ongaro和John Ousterhout在2013年提出。它主要用于分布式系统中，保证系统中的数据在多个节点间保持一致性。</p>
+<p>Raft算法被广泛应用于众多分布式系统中，尤其是在需要强一致性保证的场景中，例如：</p>
+<ul>
+<li>分布式存储系统：如ETCD、Consul等键值存储系统，它们利用Raft算法来保证数据的强一致性和高可用性。</li>
+<li>分布式数据库：一些分布式数据库管理系统（DBMS），如CockroachDB等。</li>
+<li>分布式锁服务：例如Google的Chubby以及微软的Azure Service Bus等。</li>
+</ul>
+<p>得物的多个内部中间件也是使用Raft算法作为多分片一致性的保证。</p>
+<p>长期以来，大部分开发者都是将Raft作为一个黑盒使用，只知道它能保证多分片的一致性，对其运行原理也停留在纸面。当面临Raft性能调优或者奇怪的Raft问题排障的时候则束手无策。</p>
+<p>费曼说过：“<strong>What I cannot create, I do not understand。</strong>” 我们中国先贤也强调“知行合一，以致良知”。如果我们不能亲手编写一次Raft算法，对这个东西就不能算作理解。</p>
+<h1 id="2-核心概念"><a href="#2-核心概念" class="headerlink" title="2. 核心概念"></a>2. 核心概念</h1><p>在着手开始写之前，我们先介绍几个Raft算法中的核心概念。</p>
+<h2 id="2-1-日志复制状态机"><a href="#2-1-日志复制状态机" class="headerlink" title="2.1. 日志复制状态机"></a>2.1. 日志复制状态机</h2><p>如果说什么是分布式系统理论的基石，那一定“日志”。此处的日志与我们平时在应用中打印的给人阅读的信息不同，它是最简单的存储抽象，是按时间排序的append-only的、有序的记录序列。</p>
+<p><img src="/./%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/image_1.webp"></p>
+<p>“日志”揭示了系统当下正在发生的事实。关于日志的更深入理解，可以参考博客The Log: What every software engineer should know about real-time data’s unifying abstraction，非常全面深刻。</p>
+<p>当进入分布式的领域，日志就需要“状态机”的辅助：</p>
+<ul>
+<li>如果两个相同的确定性过程以相同的状态开始并以相同的顺序获得相同的输入，它们将产生相同的输出并以相同的状态结束。</li>
+<li>确定性意味着处理不依赖于时间，并且不会让任何其他输入影响其结果。例如，一个程序的输出受到线程特定执行顺序或调用gettimeofday或其他一些不可重复的东西的影响，通常最好被认为是非确定性的。</li>
+<li>进程的状态是在处理结束时保留在机器上的任何数据，无论是在内存中还是在磁盘上。</li>
+</ul>
+<p>关于以相同的顺序获得相同的输入的一点应该会引起人们的注意——这就是日志的用武之地。这是一个非常直观的概念：如果你将两段确定性代码提供给相同的输入日志，它们将产生相同的输出。</p>
+<p>所以Raft最重要的任务就是解决如何在分布式系统中使多个副本的日志数据达成一致的问题。</p>
+<h2 id="2-2-Leader、Follower、Candidate"><a href="#2-2-Leader、Follower、Candidate" class="headerlink" title="2.2. Leader、Follower、Candidate"></a>2.2. Leader、Follower、Candidate</h2><p>为了实现上述目标，Raft使用强领导模型，即要求集群中的一个副本充当Leader，其他副本充当Follower。Leader负责根据客户端请求采取行动生成命令，将命令复制给Follower，并将响应返回给客户端。多个副本根据选举算法推选合法的Leader。</p>
+<p><img src="/./%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/image_2.webp"></p>
+<p>这个方案解决了分布式系统中的以下问题：</p>
+<ul>
+<li>容错性（Fault Tolerance）：分布式系统中可能会出现节点故障，包括宕机、网络分区等问题。通过这些角色的分工和协作，系统可以在一定数量的节点出现故障时仍然正常运行。</li>
+<li>领导者选举（Leader Election）：在分布式系统中，通常需要一个节点（Leader）来协调其他节点（Followers）的工作，以确保一致性和效率。Leader负责管理日志复制、决策提议等任务。当Leader失效时，系统需要能够选举出新的Leader。</li>
+<li>一致性（Consensus）：为了保证系统状态的一致性，需要所有节点就某个值或状态达成共识。这通常通过一系列的投票和通信过程来实现，其中Candidate角色在选举过程中起到关键作用。</li>
+<li>去中心化（Decentralization）：在去中心化的系统中，没有中央权威来决定系统状态。这些角色的引入有助于在没有中心节点的情况下实现一致性和决策。</li>
+</ul>
+<p>这种模型有其优点和缺点：</p>
+<ul>
+<li>显著的优点是简单。数据总是从领导者流向Leader，只有Leader响应客户端请求(工程实践中有例外)。这使得Raft集群更容易分析、测试和调试。</li>
+<li>缺点是性能——因为集群中只有一台服务器与客户端通信，这在客户端活动激增的情况下可能成为瓶颈。当然这个可以通过一些工程手段在一致性和吞吐性能中做出平衡，例如我们可以放弃强一致的要求，从Follower中读取数据，减轻Leader的负担，关于一致性的部分，可以参考文章《共识、线性一致性、顺序一致性、最终一致性、强一致性概念区分》。</li>
+</ul>
+<h1 id="3-Why-Elixir"><a href="#3-Why-Elixir" class="headerlink" title="3. Why Elixir"></a>3. Why Elixir</h1><p>本系列中介绍的Raft实现是用Elixir编写的。在笔者看来，Elixir具有三个优势，使其成为本系列和网络服务的有前途的实现语言：<br>Raft框架需要大量的网络编程，而Elixir基于Erlang在网络编程方面体验一骑绝尘，甚至自带RPC实现；<br>Elixir自带一个功能强大的Shell，开发调试的难度大大降低；<br>Raft这类算法需要大量的并发编程，而并发编程在Elixir中就像呼吸一样简单；<br>Erlang语言的OTP框架大大降低的服务器编程的心智负担，常见的服务端编程场景都有合适的解决方案。<br>这个项目的开发中，笔者借鉴了这个生产级别的开源Raft库——龙舟的实现细节，如果对生产级的Raft实现感兴趣，可以阅读龙舟的代码。<br>我们的实现大致代码结构如下：<br>.<br>├── README.md<br>├── Taskfile.yaml<br>├── lib<br>│   └── ex_raft<br>│       ├── config.ex<br>│       ├── core               # 各个状态下的处理逻辑<br>│       │   ├── candidate.ex<br>│       │   ├── common.ex<br>│       │   ├── follower.ex<br>│       │   ├── free.ex<br>│       │   ├── leader.ex<br>│       │   └── prevote.ex<br>│       ├── debug.ex<br>│       ├── exception.ex<br>│       ├── guards.ex<br>│       ├── log_store        # 日志存储，本节暂时不用<br>│       │   ├── cub.ex<br>│       │   └── inmem.ex<br>│       ├── log_store.ex<br>│       ├── message_handlers      # 各个状态下的消息处理<br>│       │   ├── candidate.ex<br>│       │   ├── follower.ex<br>│       │   ├── leader.ex<br>│       │   └── prevote.ex<br>│       ├── mock              # 日志复制状态机，本节暂时不用<br>│       │   └── statemachine.ex<br>│       ├── models              # 几个分片常用的数据结构<br>│       │   ├── replica.ex<br>│       │   └── replica_state.ex<br>│       ├── pb                      # 消息的数据结构<br>│       │   ├── ex_raft.pb.ex<br>│       │   ├── ex_raft.proto<br>│       │   └── gen.sh<br>│       ├── remote                 # 节点间通信客户端<br>│       │   ├── client.ex<br>│       │   └── erlang.ex<br>│       ├── remote.ex<br>│       ├── replica.ex            # 分片进程<br>│       ├── serialize.ex<br>│       ├── server.ex             # 节点间以及和客户端通信的服务端<br>│       ├── statemachine.ex<br>│       ├── typespecs.ex<br>│       └── utils                     # 工具集<br>│           ├── buffer.ex<br>│           └── uvaint.ex<br>├── mix.exs<br>├── mix.lock<br>├── test<br>│   ├── ex_raft_test.exs<br>│   ├── log_store.exs<br>│   └── test_helper.exs<br>└── tmp<br>四</p>
+<p>选主实现</p>
+<p>这一节中，我们暂时不考虑日志复制的细节，专注实现选主逻辑。<br>从论文In Search of an Understandable Consensus Algorithm（《寻找一种易于理解的一致性算法（扩展版）》，以下称为“论文”）中，可以得知：“选主”这个过程本身也是个状态机（注意区分此处的状态机和日志复制状态机不是一回事）：<br>图片<br>在典型的稳态场景中，集群中的一台服务器是Leader，而所有其他服务器都是Follower。<br>虽然我们希望事情永远这样保持下去，但Raft的目标是容错，所以我们会讨论一些故障场景：例如其中一些服务器crash、网络分区等。<br>为了实现选主的逻辑，我们要引入一些概念：<br>任期（Term）</p>
+<p>论文中的解释：任期（Term）是分布式系统中共识算法中的一个关键概念，尤其是在领导者选举（Leader Election）和共识达成过程中。任期是时间上的一个划分，用于组织和同步分布式系统中的事件，确保系统中的所有节点能够在一个明确的时间段内就某个领导者或一系列决策达成一致。<br>简单来说，任期标明了Leader的服役阶段。<br>任期这个概念有以下特性：<br>任期越大，话语权越大：本地任期较小的总是服从任期更高的消息来源。<br>每次选举，任期都会+1：确保不会多个选举过程计票混乱。<br>一山不容二虎：同个任期内最多只有一个Leader被选出。<br>选举计时（Election Timer）</p>
+<p>每个Follower都会在本地维持一个选举计时器，在选举计时器到期前，如果没有收到Leader的日志或者心跳，Follower就会认为Leader出了意外，那么就会开始发起选举。这里有几个常见问题：<br>Q：会不会有多个Follower同时成为候选人？<br>A：会的，为了避免这种情况出现，我们给选举计时器添加一些随机区间，这是Raft简单的原因之一。Raft使用这种随机化来降低多个Follower同时进行选举的机会。但是即使他们同时成为候选人，任何给定任期内也只有一个人会被选为领导人。在极少数情况下，如果选票分裂，没有候选人能获胜，将进行新的选举。<br>Q：如果Follower与集群断开连接（分区）怎么办？<br>A：这就是网络分区的隐蔽性，因为Follower无法区分谁被分区了。这种情况Follower会开始选举。但这种情况下Follower不会得到任何选票。这个节点可能会在候选状态中持续自旋（每隔一段时间重新启动一个新的选举），直到重新连接到集群。<br>消息类型</p>
+<p>Raft中两个节点的通信类型多种多样，不过涉及到选主的部分较为简单，只有下图添加注释这4种消息类型：<br>图片<br>状态机框架</p>
+<p>从上述介绍中可以看出，选主这个过程涉及多个状态的轮转，每个状态下对不同消息做不同的反应，所以非常自然我们选择状态机的方式实现。<br>而Erlang OTP有个自带的状态机实现框架：gen_statem，有了这个利器，可以写出很清晰的状态机逻辑：<br>图片<br>选举计时</p>
+<p>我们这里的计时方式也是借鉴了“龙舟”的风格，即维护一个单位时间很小（1s）的本地时钟，其他超时事件全部用该时钟的整数倍来计算，这种方式配置和编码起来较为简单。<br>我们在代码中需要判断localTick的次数超出了electionTimeout，即可将自身状态转变为Candidate开启选主。<br>图片<br>拉票</p>
+<p>开启投票前Candidate需要做这几件事：<br>将自身的Term+1；<br>投自己一票。<br>完成这些后，就将携带新Term的消息发给所有其他的节点。<br>图片<br>需要注意的是在这个Raft实现中，消息发送全部采用单向流，消息的发送和处理是隔离开的。<br>具体实现中则是使用了Erlang自带的RPC，简化了自己开发通信协议的成本。<br>处理拉票消息</p>
+<p>由于Raft中任期概念的设计，其他角色在接收到拉票消息时需要考虑以下几种情况：<br>request_vote消息携带的Term大于本地Term<br>这种情况较为简单，做Follower即可。<br>需要注意的是，在遇到较大Term而转换自身状态的情况下，不用重置选举计时器，原因在注释中写明了：<br>Not to reset the electionTick value to avoid the risk of having the local node not being to campaign at all. if the local node generates the tick much slower than other nodes (e.g. bad config, hardware clock issue, bad scheduling, overloaded etc), it may lose the chance to ever start a campaign unless we keep its electionTick value here.<br>简而言之就是防止某个节点一直处于Follower角色，失去选举的机会。<br>代码中cast_pipein这个函数是指在变更状态为Follower后，继续处理这个request_vote消息。<br>图片<br>request_vote消息携带的Term小于本地Term<br>这种情况，直接丢掉消息就行，任期小的消息在Raft算法中是不用处理掉的。<br>图片<br>request_vote消息携带的Term等于本地Term<br>这种情况就是在情况1转变本地Term的后续，当任期一致时，投不投票也有讲究。<br>Raft算法中规定，如下情况可以投赞成票：<br>这个任期中当前节点谁都没投过，这个消息来源第一个来拉票的，那就投给消息来源节点；<br>这个任期中当前节点投过了，而且我投的就是同个节点，那就不介意再投一次。<br>图片<br>计票</p>
+<p>Candidate在散出request_vote的消息后，会开始等待其他节点的回执，这时候有3种情况：<br>收到了更高Term的心跳或者其他消息<br>这种情况说明集群中已经存在一个更高任期的节点，那也不需要继续选举了，直接默认该消息来源节点为Leader。这里和上文中处理更高Term的request_vote消息类似。<br>收到了半数以上的同意选票<br>大部分节点同意了当前的选举要求，那该节点就成为这个任期的合法Leader：<br>图片<br>在下个选举周期到来前还没收到半数选票</p>
+<p>Raft算法不会给Candidate无限的计票窗口，如果一直没有收到足够的选票，就清零计票，重置Term+1，再次发起选举，重复上述的过程，直到有个合法的Leader诞生。<br>接着上面网络分区的场景讨论，相信许多Raft系统的维护人员会发现，如果某个离群的节点在重新回归后会立即成为Leader，就是这个原因，离群的节点在不停的自旋选举过程中将自己的Term抬高了很多，一但回到集群就会因为Term优势成为Leader。为了解决这个问题，Raft有个prevote的补丁，这里暂不展开讨论。<br>五</p>
+<p>Leader的工作</p>
+<p>当Candidate成功成为Leader后，就需要承担Leader的责任。在Raft算法中，Leader需要持续的向Follower发送心跳消息表明自己的存在。<br>图片<br>Follower收到心跳后，就可以重置自己的选举计时，起码在这个选举周期内，集群中有个Leader了，不用开启选举。<br>图片<br>Leader收到心跳回执后，需要标记下Follower的状态，这个状态在集群可用性处理和后续的日志复制中有大用。<br>图片<br>六</p>
+<p>日志复制</p>
+<p>上面的概念介绍中我们已经阐述过，Raft本质就是多个副本的日志数据达成一致的解决方案。 我们已经实现了选主能力，但是尚未涉及到日志的部分。<br>图片<br>接下来，我们将为选主集群添加日志复制能力。为了实现这个目标，我们需要一些新的数据结构和接口协议，同时也会对选主部分逻辑做增强的安全检查处理。<br>从客户端行为开始</p>
+<p>Raft集群的客户端会和集群产生交互，而交互的具体内容则是一个个具体的指令（Command）。例如一个Raft架构的KVDB，客户端会向集群发送类似PUT foo bar的写请求或者是GET foo的读请求，这里的请求都可以算作指令的范畴。<br>Raft集群在接收到客户端的指令后，根据论文第5.3节，会做如下的动作：<br>图片<br>如果当前节点不是Leader，则会把Command转发至Leader；</p>
+<p>Leader接收到指令后会先写入本地的日志仓库，然后向所有Follower发送日志复制(AppendEntries， 本实现中叫Replicate)请求；</p>
+<p>一旦Leader确认该Command已充分复制（即集群半数以上节点承认它们的日志仓库中成功复制了该Command ），该Command就会被commit；</p>
+<p>Leader会更新它的commit水位，在Raft中commit的日志即被认为是安全的日志，Leader会在随后的心跳或者日志复制请求中携带commit水位，Follower在收到心跳后更新本地commit水位；</p>
+<p>各个节点会选择自己觉得合适的时机将已经commit的日志apply至状态机，这里时机的选择会很大影响Raft实现的吞吐和RT。</p>
+<p>这里是论文中提供的日志复制的简单例子：<br>图片<br>按照论文的论述，这种日志复制的机制有2个特点：</p>
+<ol>
+<li><p>如果在不同的日志中的两个条目拥有相同的索引和任期号，那么他们存储了相同的指令。</p>
+</li>
+<li><p>如果在不同的日志中的两个条目拥有相同的索引和任期号，那么他们之前的所有日志块也全部相同。<br>简单来说，如果2个节点中某个日志Entry的index和Term一样，那么从集群启动到日志记录的当下，集群中所有节点的状态是完全一致的。<br>这2个特点在论文中被定义为“日志匹配特性”，由这个特性保证了“集群状态可预测性”。<br>数据结构</p>
+</li>
+</ol>
+<p>为了实现日志复制功能，我们需要扩展一下数据结构。<br>Entry</p>
+<p>Entry即一个个日志块，每个Entry会携带一个Command，为了让Command可以在集群中传播，Command会序列化为一个binary。<br>图片<br>这里的日志类型中本篇会新增用到以下两个，其余的暂时用不上：<br>append_entries&#x2F;append_entries_resp: 日志复制&#x2F;日志复制回执<br>propose：提案<br>Message</p>
+<p>图片<br>Message结构中，我们扩展了如下字段：<br>log_term&#x2F;log_index：当前节点日志复制的最新进度；<br>commit: 已提交的日志水位；<br>hint：日志复制异常时携带的水位信息（这种情况一般会触发日志的覆盖）。<br>其他字段暂时用不到。<br>日志仓库</p>
+<p>为了实现日志复制，每个节点都需要维护一个自己的日志仓库用于存储Raft的Entry，我们为日志仓库抽象了如下的API：<br>图片<br>这里同样采取API和实现分离的设计方式，具体的实现是可拔插的。（按照Elixir的编程习惯，这里用Protocol的方式来定义更优雅）<br>在我们这个版本的实现中，我们采用了Cubdb作为日志仓库的实现基础。(Cubdb是一个以B+树文件存储为基础的嵌入式KVDB)。具体的实现方式可以参考代码。使用这个存储主要是为了简单考虑，如果考虑性能的话可以模仿龙舟的方式使用wal和memcache结合的方式，大大提升日志存储的吞吐性能。<br>日志复制分步实现</p>
+<p>发起提案</p>
+<p>这里提案（Propose）即客户端对Raft集群发起的指令（Raft中读指令要比写指令复杂的多，读指令涉及到一致性相关讨论，感兴趣的可以搜索Raft中read_index的内容）。<br>图片<br>接下来就是根据当前节点的不同角色来判断：<br>如果当前节点是Candidate: 可以直接拒绝这个提案，毕竟集群都没Ready。<br>图片<br>如果节点为Follower: 就把提案转发到Leader。<br>图片<br>如果节点为Leader：进入提案处理流程，本实现中就是向本地节点发一条propose处理消息，这么做是为了复用Term异常处理等逻辑。<br>图片<br>leader复制提案</p>
+<p>Leader在接收到propose后做如下动作：<br>从propose中提取需要复制的Entries；<br>将Entries添加至本地日志仓库；<br>维护本地的日志水位；<br>如果日志复制前后日志水位发生变化，说明有新日志，就会开启日志复制广播。<br>图片<br>Leader广播日志复制消息</p>
+<p>这一过程比较简单，不过需要注意的是Leader会维护每个Follower的复制水位，这个水位是通过日志复制和心跳共同维护的。<br>日志复制会从每个Follower的复制水位开始，直到Leader的最新日志或者最大复制体积。<br>发送的日志复制请求会携带Leader记录的复制水位index和水位对应的Term，这俩数据是非常重要的，Follower会根据这两个标定来检查日志是否安全。<br>图片<br>Follower处理日志复制请求</p>
+<p>图片<br>Follower在接到日志复制消息后有如下情形：<br>消息中日志复制起点log_index小于Follower本地已提交水位(commit index)<br>这种情形说明Leader的复制水位已经落后太多，没必要做更多的动作，只需要回复Leader最新的commit水位即可。<br>图片<br>消息中日志复制起点log_index小于等于Follower的最新日志进度</p>
+<p>这种情况说明Leader发来的日志可能与Follower的日志有部分重叠，这个时候要非常谨慎，需要仔细对比Leader的日志和本地日志是否匹配。<br>图片<br>这里的日志匹配的过程分为这么几步：<br>判断日志复制起点的任期和本地是否一致，如果不一致立即拒绝复制；<br>如果任期一致，从消息中找到第一个与本地日志块不一致的日志Entry即为匹配起点，不一致指的是任期和index任意一个不一致；<br>当找到匹配起点后，后续所有日志都是用Leader的日志覆盖本地。<br>为何需要在日志复制时做这么严格的任期检查呢？这个问题先保留，后面再细致讨论。<br>日志复制起点大于Follower的最新日志进度<br>这种情况就比较简单了，日志都跳号了，肯定不能接受，直接回绝即可。<br>图片<br>Leader处理复制回执</p>
+<p>Leader在接收了Follower的日志复制回执后会有如下情形：<br>复制成功<br>这种为正常情况，Leader会更新Follower的水位，并且发起一次commit的尝试。<br>图片<br>commit的请求按照论文，必须选择至少半数复制成功的安全水位。<br>这里取安全水位的做法参考了龙舟的技巧，每次收到回执后将所有节点的match水位排序后取中位数即为半数同意的安全水位，非常巧妙。<br>图片<br>值得注意的是，在commit之前我们还特地做了一次Term的检查工作，这里是Raft的安全性检查，后文中会详细讨论。<br>复制失败<br>异常情况下，按照论文的描述，Leader不用做日志回滚，只需要调整复制的起点水位即可。复制的起点水位取本地记录的match水位和Follower返回的合理水位中的较小值（重复了没有问题，不连续才是大问题）。<br>如果这个过程中Follower的日志已经脏了，这个安全水位开始的日志可以覆盖纠正Follower的日志。<br>图片<br>日志复制安全性讨论</p>
+<p>在上节的分步实现中，我们多次做了日志的任期检查：<br>Follower在接收到日志复制消息后，会对比复制消息的Term和本地日志Term是否一致；<br>Leader在收到日志复制成功回执后commit之前，会校验commit水位的Term和当前Term是否一致（即不允许跨任期提交）；<br>为什么Raft需要不厌其烦地做Term和index的检查呢？<br>在Raft论文中有如下论述：<br>在正常的操作中，Leader和Follower的日志保持一致性，所以日志复制RPC的一致性检查从来不会失败。</p>
+<p>然而，Leader意外崩溃的情况会使得日志处于不一致的状态（老的Leader可能还没有完全复制所有的日志块）。这种不一致问题会在Leader和Follower的一系列崩溃下加剧。<br>下图展示了Follower的日志可能和新Leader不同。Follower可能会丢失一些在新的Leader中存在的日志块，也可能拥有一些新Leader没有的日志块，或者两者都发生。丢失或者多出日志块可能会持续多个任期。<br>图片<br>当一个Leader成功当选时，Follower可能是任何情况（a-f）。每一个Box表示是一个Entry；里面的数字表示任期号。Follower可能会缺少一些Entries（a-b），可能会有一些未被提交的Entries（c-d），或者两种情况都存在（e-f）。</p>
+<p>例如，场景f可能会这样发生，某节点在任期2的时候是Leader，已附加了一些Entries到自己的日志仓库中，但在提交之前就崩溃了；很快这个机器就被重启了，在任期3重新被选为Leader，并且又增加了一些Entries到自己的日志仓库中；在任期2和任期3的日志被提交之前，这个节点又宕机了，并且在接下来的几个任期里一直处于宕机状态。</p>
+<p>在Raft算法中，Leader是通过强制Follower直接复制自己的日志来处理不一致问题的。这意味着在Follower中的冲突的日志块会被Leader的日志覆盖。<br>要使得Follower的日志进入和自身一致的状态，Leader必须找到最后两者达成一致的地方，然后删除Follower从那个点之后的所有日志块（水位重置），并发送自己在水位之后的日志给Follower。<br>所有的这些操作都在进行日志复制RPC的一致性检查时完成。Leader针对每一个Follower维护了一个nextIndex，这表示下一个需要发送给Follower的日志块的索引。当一个Leader刚刚被选出的时候，它初始化所有的nextIndex值为自己的最后一条日志的index加1（图中的11）。<br>如果一个Follower的日志和Leader不一致，那么在下一次的日志复制RPC时的一致性检查就会失败。在被Follower拒绝之后，Leader就会减小nextIndex值并进行重试。最终nextIndex会在某个位置使得Leader和Follower的日志达成一致。当这种情况发生，日志复制RPC就会成功，这时就会把Follower冲突的日志块全部删除并且加上Leader的日志。一旦附加日志RPC成功，那么Follower的日志就会和Leader保持一致，并且在接下来的任期里一直继续保持。<br>通过这种机制，Leader在获得权力的时候就不需要任何特殊的操作来恢复一致性。他只需要进行正常的操作，然后日志就能在日志复制RPC——日志复制回复处理这一过程中自动趋于一致。Leader从来不会覆盖或者删除自己的日志。<br>Rethink集群选主</p>
+<p>在上面的篇幅中，我们讨论过集群选主的过程，一个节点只要拿到集群半数以上的request_vote的成功回执即可成为Leader，而且投票的原则非常简单，只要这个任期我没投过票或者我投过相同的节点即可赞成投票。<br>不过在添加日志复制后这里会出现一个小问题，例如在下图中：<br>如果f节点发起选举并得到了大多数成员认可，那么集群大部分节点就会面临日志回退，已经“安全”的日志都变得不再安全，这不符合Raft的设计初衷，所以我们需要在投票时添加一个机制防止类似f节点这类比较“旧”的节点当选为Leader。<br>图片<br>论文中有如下论述：<br>Raft使用投票的方式来阻止一个Candidate赢得选举，除非这个Candidate包含了所有已经提交的日志块。Candidate为了赢得选举必须联系集群中的大部分节点，这意味着每一个已经提交的日志块在这些服务器节点中肯定存在于至少一个节点上。如果Candidate的日志至少和大多数的服务器节点一样新（这个新的定义会在下面讨论），那么他一定持有了所有已经提交的日志块。请求投票（RequestVote）RPC实现了这样的限制：</p>
+<p>RPC中包含了Candidate的日志信息，然后投票人会拒绝掉那些日志没有自己新的投票请求。<br>简单来说就是：投票的时候如果拉票人的日志没我本地的新，那我就不能投票给你。<br>代码实现：<br>发起投票：发起投票时Candidate需要在request_vote消息中携带本地的日志任期和最新的日志index；<br>图片<br>处理投票：其他节点处理request_vote消息时，需要检查拉票消息的日志是不是要比本地更新（日志的Term大于本地或者同个Term下的日志index大于本地）。<br>图片<br>Leader提交过往任期的日志讨论</p>
+<p>在日志复制的第5步中，Leader获取了半数以上的安全水位执行提交，不过提交前判断了是否与当前任期一致，如果出现跨任期的情况，就会暂缓这次提交，为什么需要这一步呢？<br>论文有如下论述：<br>对Leader来说，只要当前任期的日志被存储到了大多数的服务器上，那么这个日志是可以被提交的。</p>
+<p>如果Leader在提交日志块之前崩溃了，未来后续的Leader会继续尝试复制这条日志块。然而，一个Leader不能断定一个之前任期里的日志块被保存到大多数服务器上的时候就一定已经提交了。<br>下图8展示了一种情况，一条已经被存储到大多数节点上的老日志块，也依然有可能会被未来的Leader覆盖掉。<br>图片<br>图片<br>如图的时间序列展示了为什么Leader无法决定对老任期号的日志块进行提交。</p>
+<p>(a) S1是Leader，部分(Follower)复制了index&#x3D;2的日志块。<br>(b) S1崩溃了，然后S5在任期3里通过S3、S4和自己的选票赢得选举，然后从客户端接收了一条不一样的日志块放在了索引2处。<br>(c) S5又崩溃了；S1重新启动，选举成功，开始复制日志。这时来自任期2的那条日志已经被复制到了集群中的大多数机器上，但是还没有被提交。<br>(d) 如果S1又崩溃了，S5可以重新被选举成功（通过来自S2、S3和S4的选票），然后覆盖了他们在index&#x3D;2处的日志。<br>(e) 如果在崩溃之前，S1把自己主导的新任期里产生的日志块复制到了大多数机器上，那么在后面任期里面这些新的日志块就会被提交（因为S5就不可能选举成功）。这样在同一时刻就同时保证了，前的所有老的日志块就会被提交。<br>简单来说就是：过往任期的“安全”水位不一定是安全的，完全可能在Leader切换后被覆盖，只有当前任期的“安全”水位是安全的，因为其他日志不一致的节点没法在该任期内当选Leader只能被覆盖。<br>七</p>
+<p>用户状态机</p>
+<p>前面的篇幅中我们已经介绍了Raft的2个核心部分：<br>集群选主<br>日志复制<br>但是现在的Raft集群还没法集成任何业务，因为缺了和业务息息相关的一环——用户状态机。<br>图片<br>接下来，我们将完成Raft拼图的最后一块，将业务能力集成，并尝试用这个完全体的Raft制作一个分布式的KVDB。<br>什么是用户状态机？</p>
+<p>在Raft一致性算法中，业务状态机（也称为应用状态机或用户状态机）指的是实际执行业务逻辑的组件。当Raft处理完日志条目（通常是客户端发送的命令或操作请求）并通过选举和日志复制机制达成一致后，这些日志条目会被提交给状态机进行处理。<br>业务状态机是确定性的，这意味着对于任何给定的输入，它总是产生相同的结果，无论在哪个节点上运行。这个特性保证了，只要日志条目的顺序相同，所有节点上的状态机经过相同的序列化输入后会达到相同的状态。因此，即使集群中发生故障，只要有一个存活的节点，就可以通过复制其状态来恢复其他节点，从而保持整个系统的状态一致。<br>在Raft中，业务状态机的职责包括：<br>执行命令：解析并执行由Raft提交的日志条目中的命令或操作。<br>更新状态：根据命令的结果更新内部状态。<br>返回结果：将操作结果返回给客户端或其他组件。<br>持久化状态（optional）：将关键状态写入磁盘，防止数据丢失。<br>快照：定期创建状态机的快照，减少日志的大小，提高性能。<br>需要注意的是，Raft算法本身不关心业务状态机的具体实现细节，它只负责保证日志条目的顺序一致性和可用性。这使得Raft能够适用于各种不同的分布式系统和应用场景，例如数据库、缓存、配置管理系统等。<br>定义状态机行为</p>
+<p>参照上面的概念定义，我们可以定义用户状态机的行为：<br>图片<br>我们的状态机约定有如下API：<br>开启、关闭状态机；<br>执行Raft日志中的业务命令；<br>对应用状态机执行当前状态的读命令；<br>准备快照的检查点，用于快照保存；<br>保存快照；<br>加载快照。<br>Raft中是这么定义“快照”的，后文有更加详细的解释：<br>快照（Snapshot）是一种重要的机制，用于减少系统的状态大小并提高性能。在Raft中，快照的主要目的是记录系统的一个完整状态点，这样就不需要从大量的日志条目中重新计算整个状态。</p>
+<p>应用状态机与Raft日志的交互</p>
+<p>应用状态机提供的各个API是和Raft的日志复制紧密相关的，我们分开讨论每个API的使用时机。<br>执行Raft日志中的业务命令</p>
+<p>图片<br>Raft的状态中保存了2个水位：<br>commit_index: 一个上上篇文章中讨论的复制的安全进度（集群半数以上的复制水位）；<br>last_applied: 已经复制到应用状态机的水位。<br>当commit_index&gt;last_applied且commit_index任期与当前任期一致（原因见上篇文章Leader提交过往任期的日志讨论）时，即可将（last_applied, commit_index]这个范围的日志应用到应用状态（即调用update方法）。<br>图片<br>而执行apply的时机就很有讲究了，各个Raft框架的实现各不相同，合理的apply时机和整个Raft框架的性能息息相关，开发者需要自己在框架的吞吐、提案的延迟中取一个合理的折中。我们这里的实现较为简单，定时apply到statemachine即可。<br>图片<br>保存快照</p>
+<p>图片<br>快照（Snapshot）是一个重要的优化机制，用于处理日志文件不断增长所带来的存储和性能问题。随着系统的运行，Raft需要记录越来越多的状态转换指令，这些指令以日志条目的形式存储，以便在需要时能够重放这些指令来重建系统状态。<br>然而，随着日志的增长，以下问题逐渐显现：<br>存储成本上升：因为需要保存更多的日志条目。<br>性能下降：特别是在服务器重启或新成员加入集群时，需要重放大量的日志条目来恢复状态，这可能导致长时间的延迟。<br>为了解决这些问题，Raft引入了快照机制。快照是对系统当前状态的一个完整拷贝，它包含了从系统启动到快照生成时刻的所有状态信息。一旦快照创建完成，它所代表的那一刻之前的所有日志条目就可以被安全地删除，因为快照包含了那些日志条目所能提供的所有信息。<br>以下是快照在Raft中的一些关键作用：<br>状态压缩：快照可以显著减少存储需求，因为它取代了之前所有的日志条目。<br>状态恢复：当服务器重启或者新节点加入集群时，可以从最新的快照恢复状态，而无需重放所有日志条目。<br>日志同步：如果某个节点的日志与领导者不同步，领导者可以向该节点发送快照，帮助其快速更新至最新状态。<br>快照的生成时机通常是根据预设的策略，比如日志条目达到一定数量或存储使用量超过阈值。<br>在Raft中，快照的生成和传输过程需要谨慎设计，以确保数据一致性和系统的稳定性。<br>在我们这个玩具实现中，就不实现复杂的自动快照了，实现一个手动快照入口即可。<br>图片<br>快照的构成包括2个部分：<br>Raft集群当前状态：包括各个节点的id、任期、保持快照时的最新index和集群节点构成等，这部分我们称之为snapshot_metadata。<br>图片<br>用户状态机想要持久化的数据：这部分数据由业务自己实现管理。</p>
+<p>Raft无法知道用户状态机想要持久化的数据，所以在保存快照时，携带snapshot_metadata调用用户状态机的快照API。这里我们设计了很简单的快照格式，用一个4字节的header保存snapshot_meta的长度，方便恢复的时候做长度切割。</p>
+<p>图片<br>我们的玩具实现中只是单纯的存在当前节点磁盘，生产中可以根据实际的业务需要将快照存储在三方存储（例如s3）中方便管理。<br>快照恢复</p>
+<p>既然有快照保存，那就一定有快照恢复，快照恢复有以下几种情形：<br>集群节点重启：需要加载本地快照恢复到最近的持久化进度，后续再从进度处重复日志达到一致性；<br>新节点加入集群：由于新节点没有本地快照，需要从远端拉取快照，可以从Leader处获取也可以从单独的快照服务中获取。<br>第二种情形较为复杂，我们就先不讨论了，这里只实现第一种情况：<br>图片<br>快照恢复的过程就是快照制作的反过程，我们从存储（磁盘）上读出快照数据，parse为业务快照和metadata，其中:<br>metadata可以用于恢复集群成员、任期、最新index等数据；<br>业务快照则可以调用statemachine的load_snapshot api恢复业务数据。<br>八</p>
+<p>编写一个分布式KVDB</p>
+<p>至此，我们已经介绍完了Raft中核心的概念，为了更直观的感受用Raft的功能，我们选择一个很简单的业务场景来验证——KVDB。<br>我们的玩具KVDB将支持以下能力：<br>添加kv对，如果相同key就覆盖；<br>删除kv对；<br>读某个key对应的val。<br>状态机实现</p>
+<p>为了实现这个KVDB，我们首先按照业务状态机的业务约定实现状态机接口。<br>这里的kv数据全部存储在内存map中，update和read方法即对该map的读写。<br>快照实现也非常简单，将所有的kv对dump为一个json，快照加载的时候读取这个json恢复所有kv即可。<br>图片<br>完整的Raft-base KVDB</p>
+<p>有了这个状态机，我们就可以将我们编写的Raft框架和这个状态机联合起来，组成一个Raft-kv。<br>我们简单组织一下上层的API：<br>show：展示当前集群结构；<br>put：写入一个kv；<br>delete：删除一个key；<br>read：读取一个key；<br>save_snapshot：快照落盘。<br>图片<br>从代码可知，这里的写入和删除都是对Raft集群发起一个提案，而读则是采用的较为简单的“脏读”策略，直接读的本地内存（如果想要更为严格的一致性，需要实现Raft提供的一致性读API）。<br>接下来就是激动人心的时刻，我们将把从选主到状态机所有的代码串联起来，检验Raft是否能正常工作。<br>验证</p>
+<p>Raft集群组建</p>
+<p>图片<br>这里我们在本地启动3个Erlang进程，每个进程有个独立的node id和port，各个node通过Erlang虚拟机相互发现通信。<br>配置文件中，我们将这3个node组成一个Raft集群。<br>从图中的show命令执行结果可知，3个节点成功组成了稳态的Raft集群，节点1为Leader，2和3为Follower。<br>读写作业</p>
+<p>图片<br>在1节点写入foo1:bar1；<br>在2和3节点读取foo1，均可以读出结果bar1；<br>在2节点删除foo1，在1节点和3节点均无法继续读出foo1。<br>由结果可知，我们的写入和删除提案都被3个节点复制执行成功。<br>快照落盘与恢复</p>
+<p>图片<br>在1节点写入foo1:bar1和foo2:bar2两个kv；<br>执行快照落盘操作，将一个json存入本地磁盘；<br>重启该node，该节点从Leader转换为Follower；<br>读取foo1，得到结果bar1；<br>读取foo2，得到结果bar2；<br>由实验结果可知，我们的快照制作和快照恢复功能生效了，节点可以从磁盘中恢复状态和集群达到一致性。<br>九</p>
+<p>总结</p>
+<p>本文深入探讨了Raft日志复制算法的核心概念和实现细节。从日志复制状态机的基础，到Leader、Follower、Candidate的角色定义，我们逐步揭开了Raft算法的神秘面纱。我们选择了Elixir作为实现语言，展示了其在构建高效、可扩展的分布式系统中的潜力。<br>通过分步实现日志复制，我们了解了如何发起提案、Leader如何复制提案以及Follower如何处理日志复制请求。安全性讨论让我们认识到了在分布式系统中保证数据一致性的重要性。此外，我们还探讨了Raft算法在集群选主和用户状态机中的常见问题和陷阱，以及如何通过定义状态机行为来执行业务命令。<br>在实践层面，我们学习了如何编写一个分布式KVDB，并验证了其正确性。这包括了Raft集群的组建、读写操作的执行、以及快照的落盘与恢复。这些实际操作不仅加深了我们对Raft算法的理解，也为我们提供了宝贵的实践经验。<br>本文仅浅尝辄止地了解了一下Raft的核心知识，制作了一个玩具的Raft实现，而生产级别的Raft框架需要考虑的问题更多了。感兴趣的开发者可以在本文的基础上进阶思考一下这些问题：<br>如何实现一致性读？<br>如何避免网络分区的节点重新回到集群立即成为Leader？<br>如何选择日志commit和apply的时机可以让Raft框架获得最理想的吞吐？<br>如何实现动态的节点增删？<br>随着分布式理论的发展，业界也对Raft做了很多的扩展和升级，例如：<br>通过Raft集群的分级并联获取更高的硬件资源利用率；<br>分拆日志匹配的job为一个无状态的服务，增加Leader的水平日志处理能力；<br>增加Observer角色（只复制不参与选主）横向扩展集群的读能力。<br>更多奇思妙想可以参考ACM上的论文。<br>随着技术的不断进步，我们有理由相信Raft算法及其在分布式系统中的应用将会更加广泛。在未来，我们期待看到更多创新的实现和应用场景，以解决日益复杂的分布式计算问题。让我们拭目以待，共同见证分布式技术的未来发展。</p>
+<p>引用：<br><a target="_blank" rel="noopener" href="https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying">https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/618127949">https://zhuanlan.zhihu.com/p/618127949</a><br><a target="_blank" rel="noopener" href="https://github.com/maemual/raft-zh_cn/blob/master/raft-zh_cn.md#%E5%AF%BB%E6%89%BE%E4%B8%80%E7%A7%8D%E6%98%93%E4%BA%8E%E7%90%86%E8%A7%A3%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7%E7%AE%97%E6%B3%95%E6%89%A9%E5%B1%95%E7%89%88">https://github.com/maemual/raft-zh_cn/blob/master/raft-zh_cn.md#%E5%AF%BB%E6%89%BE%E4%B8%80%E7%A7%8D%E6%98%93%E4%BA%8E%E7%90%86%E8%A7%A3%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7%E7%AE%97%E6%B3%95%E6%89%A9%E5%B1%95%E7%89%88</a><br><a target="_blank" rel="noopener" href="https://github.com/lucaong/cubdb">https://github.com/lucaong/cubdb</a><br><a target="_blank" rel="noopener" href="https://dl.acm.org/action/doSearch?AllField=raft">https://dl.acm.org/action/doSearch?AllField=raft</a><br>往期回顾</p>
+<ol>
+<li>链路级资损防控之资损字段防控实践｜得物技术</li>
+<li>前端打包工具Mako架构解析｜得物技术</li>
+<li>基于Rspack实现大仓应用构建提效实践｜得物技术</li>
+<li>星愿森林的互动玩法揭秘｜得物技术</li>
+<li>StarRocks跨集群迁移最佳实践｜得物技术</li>
+</ol>
+<p>文 &#x2F; 古月方块</p>
+<p>关注得物技术，每周一、三、五更新技术干货</p>
+<p>要是觉得文章对你有帮助的话，欢迎评论转发点赞～</p>
+<p>未经得物技术许可严禁转载，否则依法追究法律责任。</p>
+<p>“</p>
+<p>扫码添加小助手微信</p>
+<p>如有任何疑问，或想要了解更多技术资讯，请添加小助手微信：</p>
+<p>图片</p>
+<p>​</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag"># 分布式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/11/24/%E4%B8%80%E7%AF%87RAG%E5%85%A8%E6%A0%88%E6%8A%80%E6%9C%AF%E6%9C%80%E6%96%B0%E7%BB%BC%E8%BF%B0/" rel="prev" title="一篇RAG全栈技术最新综述">
+      <i class="fa fa-chevron-left"></i> 一篇RAG全栈技术最新综述
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/11/24/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/" rel="next" title="一文梳理有效提升RAG效果的方法">
+      一文梳理有效提升RAG效果的方法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">1. 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="nav-number">2.</span> <span class="nav-text">2. 核心概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E6%97%A5%E5%BF%97%E5%A4%8D%E5%88%B6%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="nav-number">2.1.</span> <span class="nav-text">2.1. 日志复制状态机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-Leader%E3%80%81Follower%E3%80%81Candidate"><span class="nav-number">2.2.</span> <span class="nav-text">2.2. Leader、Follower、Candidate</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-Why-Elixir"><span class="nav-number">3.</span> <span class="nav-text">3. Why Elixir</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="RAG">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一文梳理有效提升RAG效果的方法">
+<meta property="og:url" content="http://example.com/2024/11/24/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="RAG">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/image_1.webp">
+<meta property="og:image" content="http://example.com/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/image_2.webp">
+<meta property="og:image" content="http://example.com/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/image_3.webp">
+<meta property="og:image" content="http://example.com/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/image_4.webp">
+<meta property="article:published_time" content="2024-11-24T14:16:49.000Z">
+<meta property="article:modified_time" content="2024-11-26T17:01:25.384Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="RAG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/image_1.webp">
+
+<link rel="canonical" href="http://example.com/2024/11/24/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>一文梳理有效提升RAG效果的方法 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/24/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          一文梳理有效提升RAG效果的方法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-11-24 22:16:49" itemprop="dateCreated datePublished" datetime="2024-11-24T22:16:49+08:00">2024-11-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-11-27 01:01:25" itemprop="dateModified" datetime="2024-11-27T01:01:25+08:00">2024-11-27</time>
+              </span>
+
+          
+            <div class="post-description">RAG</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/gaEGL2N3JH26QCB6q84N1Q">https://mp.weixin.qq.com/s/gaEGL2N3JH26QCB6q84N1Q</a><br>收集时间：2024-11-24</p>
+</blockquote>
+<p>在大模型实际落地的时候，存在一些问题，主要集中在以下方面：</p>
+<ul>
+<li>缺少垂直领域知识：虽然大模型压缩了大量的人类知识，但在垂直场景上明显存在短板，需要专业化的服务去解决特定问题。</li>
+<li>存在幻觉、应用有一定门槛：在大模型使用上有一些幻觉、合规问题，没有办法很好地落地，配套工作不足，缺乏现成的方案来管理非结构化文本、进行测试、运营和管理等。</li>
+<li>存在重复建设：各业务孤立摸索，资产无法沉淀，存在低水平重复建设，对公司来说ROI低，不够高效。</li>
+</ul>
+<p>站在应用的角度，需要一种能够有效解决大模型在垂直领域知识短板、降低应用门槛、提高效率并发挥规模优势的技术方案。当前业内RAG是一种相对有效的解决上面问题的方案(平台化能力、开箱即用垂直私域数据)。</p>
+<p>实现一个基本的不难，但要真正优化RAG的效果，还需要投入大量的精力。这里根据个人的理解，梳理总结一些常见的RAG优化方法，以便日后在实践RAG时提供参考：首先，介绍几篇关于RAG优化的论文；然后，记录下一些常见的RAG工程实践经验。希望能给大家带来一些参考，后续个人也会重点投入在RAG这块，希望和大家多多交流。</p>
+<h1 id="1-RAG介绍"><a href="#1-RAG介绍" class="headerlink" title="1. RAG介绍"></a>1. RAG介绍</h1><p><img src="/./%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/image_1.webp"></p>
+<p>RAG是“Retrieval-Augmented Generation”（检索增强生成）的缩写，它通过结合检索系统和生成模型来提高语言生成的准确性和相关性。</p>
+<p>RAG 的优势在于它能够在生成响应时引入外部知识，这使得生成的内容更加准确和信息丰富，对于处理需要专业知识或大量背景信息的问题尤其有效。随着大型语言模型（LLMs）的发展，RAG 技术也在不断进化，以适应更长的上下文和更复杂的查询。</p>
+<p>目前，大部分公司倾向于使用 RAG方法进行信息检索，因为相比长文本的使用成本，使用向量数据库的成本更低。而在 RAG 应用过程中，一些公司会使用微调的 Embedding Model，以增强RAG 的检索能力；另一些些公司会选择使用知识图谱或者ES 等非向量数据库的 RAG 方法。大多数第三方个人和企业开发者会使用集成好的 RAG 框架（例如llamaindex、langchain、etcs），或者直接使用LLMOps 里内建的 RAG 工具。</p>
+<h1 id="2-相关优化论文"><a href="#2-相关优化论文" class="headerlink" title="2. 相关优化论文"></a>2. 相关优化论文</h1><h2 id="2-1-RAPTOR"><a href="#2-1-RAPTOR" class="headerlink" title="2.1. RAPTOR"></a>2.1. RAPTOR</h2><p>论文地址：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2401.18059">https://arxiv.org/pdf/2401.18059</a>﻿</p>
+<p>传统的RAG方法通常仅检索较短的连续文本块，这限制了对整体文档上下文的全面理解。RAPTOR(Recursive Abstractive Processing for Tree-Organized Retrieval)通过递归嵌入、聚类和总结文本块，构建一个自底向上的树形结构，在推理时从这棵树中检索信息，从而在不同抽象层次上整合来自长文档的信息。</p>
+<ol>
+<li>树形结构构建：<ul>
+<li>文本分块：首先将检索语料库分割成短的、连续的文本块。</li>
+<li>嵌入和聚类：使用SBERT（基于BERT的编码器）将这些文本块嵌入，然后使用高斯混合模型（GMM）进行聚类。</li>
+<li>摘要生成：对聚类后的文本块使用语言模型生成摘要，这些摘要文本再重新嵌入，并继续聚类和生成摘要，直到无法进一步聚类，最终构建出多层次的树形结构。</li>
+</ul>
+</li>
+</ol>
+<p><img src="/./%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/image_2.webp"></p>
+<p><img src="/./%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/image_3.webp"></p>
+<ol start="2">
+<li>查询方法：<ul>
+<li>树遍历：从树的根层开始，逐层选择与查询向量余弦相似度最高的节点，直到到达叶节点，将所有选中的节点文本拼接形成检索上下文。</li>
+<li>平铺遍历：将整个树结构平铺成一个单层，将所有节点同时进行比较，选出与查询向量余弦相似度最高的节点，直到达到预定义的最大token数。</li>
+</ul>
+</li>
+</ol>
+<p><img src="/./%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/image_4.webp"></p>
+<ol start="3">
+<li>实验结果：RAPTOR在多个任务上显著优于传统的检索增强方法，特别是在涉及复杂多步推理的问答任务中。RAPTOR与GPT-4结合后，在QuALITY基准上的准确率提高了20%。<ul>
+<li>代码：RAPTOR的源代码将在GitHub上公开。</li>
+<li>数据集：实验中使用了NarrativeQA、QASPER和QuALITY等问答数据集。</li>
+</ul>
+</li>
+</ol>
+<h2 id="2-2-Self-RAG"><a href="#2-2-Self-RAG" class="headerlink" title="2.2. Self-RAG"></a>2.2. Self-RAG</h2><p>论文地址：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2310.11511">https://arxiv.org/pdf/2310.11511</a>﻿</p>
+<p>SELF-RAG（自反思检索增强生成）是一种新框架，通过让语言模型在生成过程中进行自我反思，来提高生成质量和事实正确性，同时不损失语言模型的多样性。</p>
+<p>﻿</p>
+<p>主要过程：</p>
+<p>图片</p>
+<p>解释：</p>
+<p>生成器语言模型 M</p>
+<p>检索器 R</p>
+<p>段落集合 {d1,d2,…,dN}</p>
+<p>输入：接收输入提示 ( x ) 和之前生成的文本 （y&lt;t） ，其中(y-t)是模型基于本次问题生成的文本？</p>
+<p>检索预测：模型 ( M ) 预测是否需要检索（Retrieve），基于 ( (x, y&lt;t) )。</p>
+<p>检索判断：</p>
+<p>如果 ( Retrieve ) &#x3D;&#x3D; 是：</p>
+<ol>
+<li><p>检索相关文本段落：使用 ( R ) 基于 ( (x, y&lt;t) ) 检索相关文本段落 ( D )。</p>
+</li>
+<li><p>相关性预测：模型 ( M ) 预测相关性 ( ISREL )，基于 ( x )，段落 ( d ) 和 ( y&lt;t ) 对每个 ( d ) 进行评估。</p>
+</li>
+<li><p>支持性和有用性预测：模型 ( M ) 预测支持性 ( ISSUP ) 和有用性 ( ISUSE )，基于 ( x, y&lt;t, d ) 对每个 ( d ) 进行评估。</p>
+</li>
+<li><p>排序：基于 ( ISREL ), ( ISSUP ), 和 ( ISUSE ) 对 ( y&lt;t ) 进行排序。</p>
+</li>
+</ol>
+<p>如果 ( Retrieve ) &#x3D;&#x3D; 否：</p>
+<ol>
+<li><p>生成下一个段落：模型 ( M ) 基于 ( x ) 生成 ( y_t )。</p>
+</li>
+<li><p>有用性预测：模型 ( M ) 预测有用性 ( ISUSE )，基于 ( x, y_t ) 进行评估。</p>
+</li>
+</ol>
+<p>图片</p>
+<p>传统RAG：先检索固定数量的文档，然后将这些文档结合生成回答，容易引入无关信息或虚假信息。</p>
+<p>SELF-RAG：通过自反思机制，按需检索相关文档，并评估每个生成段落的质量，选择最佳段落生成最终回答，提高生成的准确性和可靠性。</p>
+<p>▐  CRAG</p>
+<p>论文地址：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2401.15884">https://arxiv.org/pdf/2401.15884</a>﻿</p>
+<p>纠错检索增强生成（Corrective RetrievalAugmented Generation, CRAG），旨在解决现有大语言模型（LLMs）在生成过程中可能出现的虚假信息（hallucinations）问题。</p>
+<p>﻿</p>
+<p>核心思想：</p>
+<p>问题背景：大语言模型（LLMs）在生成过程中难免会出现虚假信息，因为单靠模型内部的参数知识无法保证生成文本的准确性。尽管检索增强生成（RAG）是LLMs的有效补充，但它严重依赖于检索到的文档的相关性和准确性。</p>
+<p>解决方案：为此，提出了纠错检索增强生成（CRAG）框架，旨在提高生成过程的鲁棒性。具体来说，设计了一个轻量级的检索评估器来评估检索到的文档的整体质量，并基于评估结果触发不同的知识检索操作。</p>
+<p>﻿</p>
+<p>具体方法：</p>
+<p>图片</p>
+<p>解释：</p>
+<ol>
+<li>输入和输出：<br>x 是输入的问题。<br>D 是检索到的文档集合。<br>y 是生成的响应。</li>
+<li>评估步骤：<br>scorei 是每个问题-文档对的相关性得分，由检索评估器 E 计算。<br>Confidence 是基于所有相关性得分计算出的最终置信度判断。</li>
+<li>动作触发：<br>如果置信度为 CORRECT，则提取内部知识并进行细化。<br>如果置信度为 INCORRECT，则进行网络搜索获取外部知识。<br>如果置信度为 AMBIGUOUS，则结合内部和外部知识。</li>
+<li>生成步骤：<br>使用生成器 G 基于输入问题 x 和处理后的知识 k 生成响应 y。</li>
+</ol>
+<p>关键的组件：</p>
+<ol>
+<li>检索评估器：</li>
+</ol>
+<p>基于置信度分数，触发不同的知识检索操作：Correct（正确）、Incorrect（错误）和Ambiguous（模糊）。</p>
+<ol start="2">
+<li>知识重组算法：</li>
+</ol>
+<p>对于相关性高的检索结果，设计了一个先分解再重组的知识重组方法。首先，通过启发式规则将每个检索到的文档分解成细粒度的知识片段。</p>
+<p>然后，使用检索评估器计算每个知识片段的相关性得分。基于这些得分，过滤掉不相关的知识片段，仅保留相关的知识片段，并将其按顺序重组。</p>
+<ol start="3">
+<li>网络搜索：</li>
+</ol>
+<p>由于从静态和有限的语料库中检索只能返回次优的文档，因此引入了大规模网络搜索作为补充，以扩展和增强检索结果。</p>
+<p>当所有检索到的文档都被认为是错误的时，引入网络搜索作为补充知识源。通过网络搜索来扩展和丰富最初获取的文档。</p>
+<p>输入查询被重写为由关键词组成的查询，然后使用搜索API（如Google Search API）生成一系列URL链接。通过URL链接导航网页，转录其内容，并采用与内部知识相同的知识重组方法，提取相关的网络知识。</p>
+<p>图片</p>
+<p>实验结果：</p>
+<p>在四个数据集（PopQA、Biography、PubHealth和Arc-Challenge）上的实验表明，CRAG可以显著提高RAG方法的性能，验证了其在短文本生成和长文本生成任务中的通用性和适应性。</p>
+<p>▐  Dense X Retrieval</p>
+<p>论文地址：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2312.06648">https://arxiv.org/pdf/2312.06648</a>﻿</p>
+<p>﻿</p>
+<p>探讨在密集检索任务中，选择适当的检索单元粒度（如文档、段落或句子）的重要性，作者提出了一种新的检索单元“命题”（proposition），并通过实验证明，在密集检索和下游任务（如开放域问答）中，基于命题的检索显著优于传统的段落或句子检索方法。</p>
+<p>﻿</p>
+<p>命题定义：命题被定义为文本中的原子表达，每个命题包含一个独立的事实，并以简洁、自包含的自然语言形式呈现。命题代表文本中的原子意义表达，定义如下：</p>
+<p>a. 独立意义：每个命题应对应文本中的一个独立意义，所有命题的组合应能表示整个文本的语义。</p>
+<p>b. 最小化：命题应是最小的，即不能进一步分割成更小的命题。</p>
+<p>c. 上下文自包含：命题应是上下文化且自包含的。即命题应包含所有必要的上下文信息，以便独立理解其意义。</p>
+<p>﻿</p>
+<p>具体的方法：</p>
+<p>图片</p>
+<p>具体的步骤：</p>
+<p>分割段落为命题（A部分）</p>
+<p>创建FactoidWiki（B部分）(命题化处理器将段落分割成独立的命题，从而创建了一个新的检索语料库FactoidWiki)</p>
+<p>比较不同粒度的检索单元（C部分）</p>
+<p>在开放域问答任务中使用（D部分）</p>
+<p>不同粒度的检索单元（段落、句子、命题）进行了实证比较：</p>
+<p>图片</p>
+<p>（Recall@5），即在前5个检索结果中找到正确答案的比例。</p>
+<p>（EM@100），即在前100个字中找到正确答案的比例。</p>
+<p>﻿</p>
+<p>图表明了命题检索在提高密集检索的精确性和问答任务的准确性方面的优势。通过直接提取相关信息，命题检索能更有效地回答问题并提供更准确的检索结果。</p>
+<p>将段落和句子分解为更小的、上下文自包含的命题会产生更多的独立单元，每个单元都需要存储在索引中，会导致存储增加。</p>
+<p>从段落到命题的提示词：（英文版）</p>
+<p>Decompose the “Content” into clear and simple propositions, ensuring they are interpretable out of context.</p>
+<ol>
+<li>Split compound sentences into simple sentences. Maintain the original phrasing from the input whenever possible.</li>
+<li>For any named entity that is accompanied by additional descriptive information, separate this information into its own distinct proposition.</li>
+<li>Decontextualize the proposition by adding necessary modifiers to nouns or entire sentences and replacing pronouns (e.g., “it”, “he”, “she”, “they”, “this”, “that”) with the full name of the entities they refer to.</li>
+<li>Present the results as a list of strings, formatted in JSON.</li>
+</ol>
+<p><strong>Input:</strong></p>
+<p>Title: Ìostre. Section: Theories and interpretations, Connection to Easter Hares. </p>
+<p>Content:<br>The earliest evidence for the Easter Hare (Osterhase) was recorded in south-west Germany in 1678 by the professor of medicine Georg Franck von Franckenau, but it remained unknown in other parts of Germany until the 18th century. Scholar Richard Sermon writes that “hares were frequently seen in gardens in spring, and thus may have served as a convenient explanation for the origin of the colored eggs hidden there for children. Alternatively, there is a European tradition that hares laid eggs, since a hare’s scratch or form and a lapwing’s nest look very similar, and both occur on grassland and are first seen in the spring. In the nineteenth century the influence of Easter cards, toys, and books was to make the Easter Hare&#x2F;Rabbit popular throughout Europe. German immigrants then exported the custom to Britain and America where it evolved into the Easter Bunny.”</p>
+<p><strong>Output:</strong></p>
+<p>[<br>  “The earliest evidence for the Easter Hare was recorded in south-west Germany in 1678 by Georg Franck von Franckenau.”,<br>  “Georg Franck von Franckenau was a professor of medicine.”,<br>  “The evidence for the Easter Hare remained unknown in other parts of Germany until the 18th century.”,<br>  “Richard Sermon was a scholar.”,<br>  “Richard Sermon writes a hypothesis about the possible explanation for the connection between hares and the tradition during Easter.”,<br>  “Hares were frequently seen in gardens in spring.”,<br>  “Hares may have served as a convenient explanation for the origin of the colored eggs hidden in gardens for children.”,<br>  “There is a European tradition that hares laid eggs.”,<br>  “A hare’s scratch or form and a lapwing’s nest look very similar.”,<br>  “Both hares and lapwing’s nests occur on grassland and are first seen in the spring.”,<br>  “In the nineteenth century the influence of Easter cards, toys, and books was to make the Easter Hare&#x2F;Rabbit popular throughout Europe.”,<br>  “German immigrants exported the custom of the Easter Hare&#x2F;Rabbit to Britain and America.”,<br>  “The custom of the Easter Hare&#x2F;Rabbit evolved into the Easter Bunny in Britain and America.”<br>]</p>
+<hr>
+<p><strong>Input:</strong><br><an new passage></p>
+<p><strong>Output:</strong></p>
+<p>从段落到命题的提示词：（中文版）</p>
+<p>将“内容”分解成清晰简洁的命题，确保它们在上下文之外也能理解。</p>
+<ol>
+<li>将复合句拆分为简单句。尽可能保持输入的原始措辞。</li>
+<li>对于任何伴随有额外描述信息的命名实体，将这些信息分离成独立的命题。</li>
+<li>通过为名词或整句添加必要的修饰词，并用完整的实体名称替换代词（例如“它”、“他”、“她”、“他们”、“这个”、“那个”）来使命题脱离上下文。</li>
+<li>以JSON格式将结果呈现为字符串列表。</li>
+</ol>
+<p><strong>输入:</strong></p>
+<p>标题: Ìostre. 部分: 理论和解释，与复活节兔子的联系。</p>
+<p>内容:<br>关于复活节兔子（Osterhase）的最早证据是在1678年由医学教授Georg Franck von Franckenau在德国西南部记录的，但在18世纪之前在德国其他地区仍然不为人知。学者Richard Sermon写道：“兔子经常在春天的花园中出现，因此可能是对为孩子们藏在那里的彩蛋起源的一个方便解释。或者，有一种欧洲传统认为兔子下蛋，因为兔子的抓痕或形态和大鸻的巢非常相似，而且两者都出现在草地上，并在春天首次出现。19世纪，复活节卡片、玩具和书籍的影响使复活节兔子在整个欧洲流行起来。然后，德国移民将这种习俗传播到英国和美国，并在英国和美国演变成复活节兔子。”</p>
+<p><strong>输出:</strong></p>
+<p>[<br>  “关于复活节兔子的最早证据是在1678年由Georg Franck von Franckenau在德国西南部记录的。”,<br>  “Georg Franck von Franckenau是一位医学教授。”,<br>  “在18世纪之前，复活节兔子的证据在德国其他地区仍然不为人知。”,<br>  “Richard Sermon是一位学者。”,<br>  “Richard Sermon写了一个关于兔子与复活节传统之间可能联系的假设。”,<br>  “兔子经常在春天的花园中出现。”,<br>  “兔子可能是对为孩子们藏在花园里的彩蛋起源的一个方便解释。”,<br>  “有一种欧洲传统认为兔子下蛋。”,<br>  “兔子的抓痕或形态和大鸻的巢非常相似。”,<br>  “兔子和大鸻的巢都出现在草地上，并在春天首次出现。”,<br>  “19世纪，复活节卡片、玩具和书籍的影响使复活节兔子在整个欧洲流行起来。”,<br>  “德国移民将复活节兔子的习俗传播到英国和美国。”,<br>  “复活节兔子的习俗在英国和美国演变成复活节兔子。”<br>]</p>
+<hr>
+<p><strong>输入:</strong><br>&lt;新段落&gt;</p>
+<p><strong>输出:</strong></p>
+<p>图片</p>
+<p>其他优化方法</p>
+<p>▐  Chunking优化</p>
+<p>视频地址：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=8OJC21T2SL4&t=1933s">https://www.youtube.com/watch?v=8OJC21T2SL4&amp;t=1933s</a>﻿</p>
+<p>﻿</p>
+<p>主要观点：</p>
+<p>文本切割是优化语言模型应用性能的关键步骤。</p>
+<p>切割策略应根据数据类型和语言模型任务的性质来定制。</p>
+<p>传统的基于物理位置的切割方法（如字符级切割和递归字符切割）虽简单，但可能无法有效地组织语义相关的信息。</p>
+<p>语义切割和基因性切割是更高级的方法，它们通过分析文本内容的语义来提高切割的精确度。</p>
+<p>使用多向量索引可以提供更丰富的文本表示，从而在检索过程中提供更相关的信息。</p>
+<p>工具和技术的选择应基于对数据的深入理解以及最终任务的具体需求。</p>
+<p>﻿</p>
+<p>五种文本切割的层次：</p>
+<ol>
+<li><p>字符级切割： 简单粗暴地按字符数量固定切割文本。</p>
+</li>
+<li><p>递归字符切割： 考虑文本的物理结构，如换行符、段落等，逐步递归切割。</p>
+</li>
+<li><p>文档特定切割： 针对不同类型的文档（如Markdown、Python代码、JavaScript代码和PDF），使用特定的分隔符进行切割。</p>
+</li>
+<li><p>语义切割：利用语言模型的嵌入向量来分析文本的意义和上下文，以确定切割点。</p>
+</li>
+<li><p>基因性切割：创建一个Agent，使用Agent来决定如何切割文本，以更智能地组织信息。</p>
+</li>
+</ol>
+<p>▐  Query重写</p>
+<p>参考文章：<a target="_blank" rel="noopener" href="https://raghunaathan.medium.com/query-translation-for-rag-retrieval-augmented-generation-applications-46d74bff8f07">https://raghunaathan.medium.com/query-translation-for-rag-retrieval-augmented-generation-applications-46d74bff8f07</a>﻿</p>
+<p>图片</p>
+<p>1、输入问题</p>
+<p>2、生成子查询：输入问题被分解成多个子查询（Query 1, Query 2, Query n）。</p>
+<p>3、文档检索：每个子查询分别检索相关的文档，得到对应的检索结果（Query 1 documents, Query 2 documents, Query n documents）。</p>
+<p>4、文档合并和重新排序：将所有子查询的检索结果文档合并并重新排序（Combined Reranked Documents）。</p>
+<p>5、输出答案</p>
+<p>提示词：</p>
+<p>你是一名乐于助人的助手，负责生成与输入问题相关的多个子问题。<br>目标是将输入问题分解为一组可以单独回答的子问题。<br>生成与以下问题相关的多个搜索查询：{question}<br>输出（3个查询）：</p>
+<p>英文版：</p>
+<p>You are a helpful assistant that generates multiple sub-questions related to an input question.<br>The goal is to break down the input into a set of sub-problems &#x2F; sub-questions that can be answers in isolation.<br>Generate multiple search queries related to: {question}<br>Output (3 queries):</p>
+<p>上面是分解为多个子查询之后，把多个子查询召回的文档重排序后交给大模型来回答，接下来的策略对子查询生成的问题进行迭代得到新的答案。</p>
+<p>﻿</p>
+<p>其它Query分解的策略：</p>
+<p>1、递归回答方法：我们将问题以及先前的问答响应和为当前问题获取的上下文继续传递。保留了旧的视角，并将解决方案与新的视角同步，这种方法对于非常复杂的查询是有效的。</p>
+<p>图片</p>
+<p>2、并行回答方法：将用户提示分解为细致入微的部分，不同之处在于我们试图并行解决它们。单独回答每个问题，然后将它们组合在一起以获得更细致的上下文，然后用于回答用户查询。对大部分场景来说是有效的方案</p>
+<p>图片</p>
+<p>其它：</p>
+<p>图片</p>
+<ol>
+<li>分析Query结构（分词、NER）</li>
+</ol>
+<p>分词：将查询分解成单独的词语或词组，便于进一步处理。</p>
+<p>NER（命名实体识别）：识别查询中的命名实体，如人名、地名、组织等，有助于理解查询的具体内容。</p>
+<ol start="2">
+<li>纠正Query错误（纠错）</li>
+</ol>
+<p>对查询中的拼写错误或语法错误进行自动纠正，以提高检索的准确性。</p>
+<ol start="3">
+<li>联想Query语义（改写）</li>
+</ol>
+<p>对查询进行语义改写，使其更具表达力和检索效果。</p>
+<p>HyDE：一种基于上下文的联想查询改写方法，利用现有信息生成更有效的查询。</p>
+<p>RAG-Fusion：结合检索和生成的技术，进一步增强查询的表达能力。</p>
+<ol start="4">
+<li>扩充Query上下文（省略补全、指代消解）</li>
+</ol>
+<p>对查询进行上下文扩展，补全省略的内容或解析指代关系，使查询更完整和明确。</p>
+<p>图片</p>
+<p>▐  Hybrid Retrieval（混合检索）</p>
+<p>混合检索(Hybrid Retrieval)是一种结合了稀疏检索(Sparse Retrieval)和稠密检索(Dense Retrieval)的策略，旨在兼顾两种检索方式的优势，提高检索的效果和效率。</p>
+<p>图片</p>
+<ol>
+<li><p>稀疏检索(Sparse Retrieval)：这种方法通常基于倒排索引(Inverted Index)，对文本进行词袋(Bag-of-Words)或TF-IDF表示，然后按照关键词的重要性对文档进行排序。稀疏检索的优点是速度快，可解释性强，但在处理同义词、词语歧义等语义问题时效果有限。</p>
+</li>
+<li><p>稠密检索(Dense Retrieval)：这种方法利用深度神经网络，将查询和文档映射到一个低维的稠密向量空间，然后通过向量相似度(如点积、余弦相似度)来度量查询与文档的相关性。稠密检索能更好地捕捉语义信息，但构建向量索引的成本较高，检索速度也相对较慢。</p>
+</li>
+</ol>
+<p>图片</p>
+<p>▐  Small to Big</p>
+<p>Small to Big检索策略是一种渐进式的多粒度检索方法，基本思想是，先从小粒度的文本单元(如句子、段落)开始检索，然后逐步扩大检索范围到更大的文本单元(如文档、文档集合)，直到获得足够的相关信息为止。</p>
+<p>﻿</p>
+<p>感觉可以和上面的Dense X Retrivel结合。</p>
+<p>﻿</p>
+<p>“Small to Big”检索策略的优点在于：</p>
+<ol>
+<li><p>提高检索效率：通过先检索小粒度单元，可以快速锁定相关信息的大致位置，避免了在大量无关文本中进行耗时的全文搜索。</p>
+</li>
+<li><p>提高检索准确性：通过逐步扩大检索范围，可以在保证相关性的同时，获取更完整、更全面的上下文信息，减少由于语义片段化而导致的检索不准问题。</p>
+</li>
+<li><p>减少无关信息：通过从小到大的渐进式检索，可以有效过滤掉大部分不相关的文本，减少无关信息对后续生成任务的干扰。</p>
+</li>
+</ol>
+<p>图片</p>
+<p>图片</p>
+<p>图片</p>
+<p>▐  Embeding &amp; Rerank 模型优化</p>
+<p>图片</p>
+<p>图片</p>
+<p>图片</p>
+<p>图片</p>
+<p>图片</p>
+<p>效果评估</p>
+<p>RAG评估系统是模型开发、优化和应用过程中不可或缺的一部分，通过统一的评估标准，可以公平地比较不同RAG模型或优化方法之间的差异，识别出最佳实践。</p>
+<p>图片</p>
+<p>图片</p>
+<p>图片</p>
+<p>图片<br>结语</p>
+<p>在RAG系统的实际应用中，需要工程和算法等的多方参与和努力，理论上有很多方法，再实践的过程中我觉得还需要大量的实验对比，不断验证和优化，也可能会遇到许多细节问题，比如可想到的异构数据源的加载和处理啊，知识的展示形态(文本、图片、表格)等是否能一起回答下，提升下用户体验，以及建立一套自动化的评估机制，当然还有模型的持续迭代和大小模型的训练支持。</p>
+<p>过程上应该还是有挺多需要去踩坑的，兼具挑战和机遇，后续也将会持续记录分享。</p>
+<p>图片</p>
+<p>参考资料</p>
+<p>RAPTOR：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2401.18059">https://arxiv.org/pdf/2401.18059</a>﻿</p>
+<p>Self-RAG：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2310.11511">https://arxiv.org/pdf/2310.11511</a>﻿</p>
+<p>CRAG：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2401.15884">https://arxiv.org/pdf/2401.15884</a>﻿</p>
+<p>Dense X Retrieval：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2312.06648">https://arxiv.org/pdf/2312.06648</a>﻿</p>
+<p>The 5 Levels Of Text Splitting For Retrieval：</p>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=8OJC21T2SL4&t=1933s">https://www.youtube.com/watch?v=8OJC21T2SL4&amp;t=1933s</a>﻿</p>
+<p>RAG for long context LLMs：</p>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=SsHUNfhF32s">https://www.youtube.com/watch?v=SsHUNfhF32s</a>﻿﻿﻿</p>
+<p>LLamaIndex构建生产级别RAG：</p>
+<p><a target="_blank" rel="noopener" href="https://docs.llamaindex.ai/en/stable/optimizing/production_rag/">https://docs.llamaindex.ai/en/stable/optimizing/production_rag/</a></p>
+<p>PPT from Qcon﻿</p>
+<p>¤ 拓展阅读 ¤</p>
+<p>3DXR技术 | 终端技术 | 音视频技术<br>服务端技术 | 技术质量 | 数据算法</p>
+<p>​</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RAG/" rel="tag"># RAG</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/11/24/%E5%AE%9E%E6%88%98%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AE%9E%E7%8E%B0Raft%EF%BD%9C%E5%BE%97%E7%89%A9%E6%8A%80%E6%9C%AF/" rel="prev" title="实战从零开始实现Raft｜得物技术">
+      <i class="fa fa-chevron-left"></i> 实战从零开始实现Raft｜得物技术
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/11/24/RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/" rel="next" title="RAG大模型的技术框架">
+      RAG大模型的技术框架 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-RAG%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">1. RAG介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E7%9B%B8%E5%85%B3%E4%BC%98%E5%8C%96%E8%AE%BA%E6%96%87"><span class="nav-number">2.</span> <span class="nav-text">2. 相关优化论文</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-RAPTOR"><span class="nav-number">2.1.</span> <span class="nav-text">2.1. RAPTOR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-Self-RAG"><span class="nav-number">2.2.</span> <span class="nav-text">2.2. Self-RAG</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

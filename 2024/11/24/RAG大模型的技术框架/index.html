@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="RAG">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RAG大模型的技术框架">
+<meta property="og:url" content="http://example.com/2024/11/24/RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="RAG">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/11/24/RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/image_1.jpg">
+<meta property="og:image" content="http://example.com/RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/image_2.jpg">
+<meta property="article:published_time" content="2024-11-24T14:29:47.000Z">
+<meta property="article:modified_time" content="2025-03-13T15:10:12.240Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="RAG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/11/24/RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/image_1.jpg">
+
+<link rel="canonical" href="http://example.com/2024/11/24/RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>RAG大模型的技术框架 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/24/RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RAG大模型的技术框架
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-11-24 22:29:47" itemprop="dateCreated datePublished" datetime="2024-11-24T22:29:47+08:00">2024-11-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-03-13 23:10:12" itemprop="dateModified" datetime="2025-03-13T23:10:12+08:00">2025-03-13</time>
+              </span>
+
+          
+            <div class="post-description">RAG</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/1480781970">https://zhuanlan.zhihu.com/p/1480781970</a><br>收集时间：2024-11-24</p>
+</blockquote>
+<h1 id="1-RAG大模型的架构"><a href="#1-RAG大模型的架构" class="headerlink" title="1. RAG大模型的架构"></a>1. RAG大模型的架构</h1><p><img src="/2024/11/24/RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/image_1.jpg" alt="引入RAG与否的QA流程"></p>
+<p>传统方法输入后LLM直接生成答案并返回给用户</p>
+<p>加入RAG后，先对documents进行indexing（产生了怎么分块，每块与Query的相似度有多少，怎么得到embedding等问题），之后Query与embeddings进行相似度计算即Retrieval得到Relevant Documents，再与Query拼接作为输入给LLM，最终呈现Answers。</p>
+<h1 id="2-RAG核心步骤"><a href="#2-RAG核心步骤" class="headerlink" title="2. RAG核心步骤"></a>2. RAG核心步骤</h1><h2 id="2-1-Indexing（索引）"><a href="#2-1-Indexing（索引）" class="headerlink" title="2.1. Indexing（索引）"></a>2.1. Indexing（索引）</h2><ol>
+<li>数据提取：<ul>
+<li>数据清洗：数据loader，提取pdf、word、markdown以及数据库和AGI等；</li>
+<li>数据处理：数据格式处理，不可识别内容的剔除，压缩和格式化等；</li>
+<li>元数据提取：提取文件名、时间、章节title等信息。</li>
+</ul>
+</li>
+<li>分块：<ul>
+<li>固定大小的分块方式:一般是256&#x2F;512个tokens，取决于embedding模型的情况。但是这种方式的弊端是会损失语义</li>
+<li>基于意图的分块方式:句分割–最简单的是通过句号和换行来做切分。当然也有通过专业的意图包来切分的，常用的意图包有基于NLP的NLTK和spaCy</li>
+<li>较为简单的方式是检索句号，如果检索到句号且小于256个tokens，继续检索，当检索到句号已经达到256个tokens时，将最后一句放在下一个chunk的首句。</li>
+</ul>
+</li>
+<li>影响分块策略的因素：<ul>
+<li>取决于你的索引类型，包括文本类型和长度，文章和微博推文的分块</li>
+<li>模型类型，tokens限制长度不一样</li>
+<li>问答的文本的长度和复杂度:最好问答的文本长度和你分块的尺寸差不多，这样会对检索效率更友好</li>
+</ul>
+</li>
+<li>向量化<ul>
+<li>将文本、图像、音频和视频等转化为向量矩阵的过程，也就是变成计算机可以理解的格式，更方便计算相似度、距离等</li>
+<li>embedding模型的好坏会直接影响到后面检索的质量，特别是相关度</li>
+<li>向量化方法：<ul>
+<li>BGE：这是国人开发的中文embedding模型，在HuggingFace的MTEB(海量文本Embedding基准)上排名前2。支持超过一百种语言，并且能够高效实现不同细粒度的检索任务</li>
+<li>M3E：也是国人开发的中英双语embedding模型，Moka Massive Mixed Embedding。主要针对中文文本进行向量化处理，但也有一定的双语处理</li>
+<li>基于PLM的,如Sentence-t5等，直接通过huggingface调用，计算词向量</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="2-2-Retrieval（检索）："><a href="#2-2-Retrieval（检索）：" class="headerlink" title="2.2. Retrieval（检索）："></a>2.2. Retrieval（检索）：</h2><ol>
+<li>预处理：<ul>
+<li>元数据过滤：当我们把索引分成许多chunks的时候，检索效率会成为问题。这时候，如果可以通过元数据先进行过滤，就会大大提升效率，比如寻问帮我对第二季度中，公司在服装方面带来的营收进行统计。如果有元数据，比如“第二季度 服装 营收”，那么检索量就会大大降低</li>
+<li>图关系检索：如果可以将很多实体变成node，把它们之间的关系变成relation，就可以利用知识之间的关系做更准确的回答，尤其适合多跳</li>
+<li>检索方法：<ul>
+<li>相似度检索：包括欧氏距离、曼哈顿距离、余弦等</li>
+<li>关键词检索 ：先把chunk做摘要，再通过关键词检索找到可能相关的chunk，一般时间复杂度是O（n²）</li>
+<li>SQL检索：把query转为SQL语句</li>
+</ul>
+</li>
+<li>重排序、迭代、自省等等</li>
+</ul>
+</li>
+</ol>
+<h2 id="2-3-Generation（生成）："><a href="#2-3-Generation（生成）：" class="headerlink" title="2.3. Generation（生成）："></a>2.3. Generation（生成）：</h2><p>组装prompt——提出的查询和选定的文档被渲染成一个提示（Prompt），输入到模型之中生成答案</p>
+<h1 id="3-关键技术和方法介绍"><a href="#3-关键技术和方法介绍" class="headerlink" title="3. 关键技术和方法介绍"></a>3. 关键技术和方法介绍</h1><p><img src="/./RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%80%E6%9C%AF%E6%A1%86%E6%9E%B6/image_2.jpg" alt="RAG演变"></p>
+<h2 id="3-1-Native-RAG"><a href="#3-1-Native-RAG" class="headerlink" title="3.1. Native RAG"></a>3.1. Native RAG</h2><p>包括最基本的Indexing-Retrieval-Generation三个过程</p>
+<ul>
+<li>不足：效果不好<ul>
+<li>准确性低：Retrieval阶段查询到的块，和query本身的相关性低（Retrieval得到的Documents可能本身相关性不大，即使取出TOP-K相关性也不大，反而产生噪音，可能导致LLM出现幻觉）。</li>
+<li>召回低：Retrieval阶段查询的块，并没有返回足够多的相关块</li>
+<li>组装prompt的问题：这个阶段会将检索到的块和query融合，若检索到的多个块中包含了相似或重复的内容，可能导致最终LLM生成内容的冗余和重复</li>
+<li>过度依赖：生成模型可能过度依赖增强的信息，导致输出只是回应检索到的内容，而不添加有见地或合成的信息</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-2-Advanced-RAG"><a href="#3-2-Advanced-RAG" class="headerlink" title="3.2. Advanced RAG"></a>3.2. Advanced RAG</h2><p>采用了预检索和后检索策略（pre-retrieval and post-retrieval strategies）</p>
+<h3 id="3-2-1-预检索——重点在于优化索引结构和原始查询"><a href="#3-2-1-预检索——重点在于优化索引结构和原始查询" class="headerlink" title="3.2.1. 预检索——重点在于优化索引结构和原始查询"></a>3.2.1. 预检索——重点在于优化索引结构和原始查询</h3><p>1、优化索引</p>
+<p>目标是提高被索引内容的质量。这涉及五种主要策略：增强数据粒度、优化索引结构、添加元数据、对齐优化和混合检索。</p>
+<p>增强数据粒度：</p>
+<p>粗粒度：例如文档分块chunk较大。理论上粗粒度，能包含更多的相关信息。</p>
+<p>细粒度：例如文档分块chunk较小。细粒度会导致分块很多，可能避免用一些冗余信息。</p>
+<p>动态优化，自适应进行chunk的切分</p>
+<p>滑动窗口</p>
+<p>添加元数据</p>
+<p>例如chunk的元数据：页码、文件名、作者、时间、类别（用Query中关键的token与chunk中元数据做比对来筛选）</p>
+<p>检索时可通过meta data先过滤，例如检索time range内的chunk</p>
+<p>2、优化查询</p>
+<p>目标是让用户的原始问题更清晰，更适合于检索任务。</p>
+<p>常见的方法包括查询改写、查询转换、查询扩展等</p>
+<p>查询扩展：</p>
+<p>将单个查询扩展为多个查询，丰富查询内容，可提供更丰富的上下文信息（由于chunk的长度要与Query差不多，如果Query过小，会加大检索成本，所以可以进行增加改写）</p>
+<p>将复杂问题拆分成多个子问题，也会增加chunk长度，降低检索成本</p>
+<p>查询转换</p>
+<p>让LLM优化原始query</p>
+<p>使用专门的较小的语言模型进行改写（Rephrasing）</p>
+<p>让LLM先生成原始query的答案，然后将答案作为query，去根据相似性检索（而不是直接用原始query去检索）</p>
+<p>后检索——重点是有效的融合检索到的相关内容和query（重排，总结，融合等）</p>
+<p>1、分块chunk重排序</p>
+<p>将检索到的块里，最相关的块优先级提高（用什么方法计算相关性很重要）</p>
+<p>2、上下文压缩</p>
+<p>一个是避免prompt超长，超过LLM的窗口限制</p>
+<p>另一个是找到基础信息，强调关键信息，将不相关的内容压缩、精简、淡化（如通过摘要生成的方法获取关键信息，用一个已经训练好摘要生成方法的小模型或一个用自己数据微调过的摘要生成的小模型或一个大模型或将大模型的task description加入一些与任务相关的描述）</p>
+<p>Modular RAG<br>Modular RAG 引入多个特定功能模块和替换现有模块， 总体上展示了更大的灵活性。其过程并不局限于顺序检索和生成，包括了迭代和自适应检索。</p>
+<p>advancedRAG 阶段主要解决的问题是「检索什么内容」，modularRAG 需要解决「什么时候检索」的问题。以下介绍三种循环检索 - 生成的方式：</p>
+<p>IterativeRAG</p>
+<p>先用原始 query 检索生成，然后将生成结果 + 原始 query 进行第二轮检索生成，N 次迭代或 llm 判断可以回答问题后停止。</p>
+<p>IterativeRAG实例<br>AdaptiveRAG</p>
+<p>FLARE：模型生成低置信度 token 时停止生成或者regenerate，或者用 prompt 指示模型不确定时停止生成。</p>
+<p>FLARE<br>Self-RAG</p>
+<p>当模型认为需要检索，生成特殊的 token。</p>
+<p>此时根据问题进行常规检索。并且分开检索。</p>
+<p>用模型对生成结果进行自我评判，将选择的最优生成结果作为 context 继续生成。</p>
+<p>Self-RAG<br>RAG大模型与传统模型的比较<br>工作原理：<br>RAG模型：RAG结合了检索（Retrieval）和生成（Generation）的能力。</p>
+<p>传统模型：传统的自然语言处理模型（如GPT-3或BERT）依赖于预先训练好的模型参数来生成回答。</p>
+<p>知识动态更新：<br>RAG模型：因为RAG可以从外部数据源实时检索信息，理论上可以保持知识的最新性</p>
+<p>传统模型：传统模型在训练结束后，模型内部的知识就固定了，不能动态更新</p>
+<p>计算资源：<br>RAG模型：检索能够减少模型需要记忆的知识量，从而提升生成效果。</p>
+<p>传统模型：在训练过程中，如果模型需要学习大量知识，训练成本可能非常高</p>
+<p>RAG，Fine tuning与Prompt Engineering在模型泛化性与外部知识要求的对比<br>参考文章：</p>
+<p>2312.10997 (arxiv.org)<br>2305.15294 (arxiv.org)<br>2305.06983 (arxiv.org)<br>2310.11511 (arxiv.org)<br>发布于 2024-10-16 23:13・IP 属地天津<br>内容所属专栏<br>RAG学习笔记<br>RAG学习笔记<br>本人零基础接触RAG的学习笔记<br>订阅专栏<br>RAG搜索增强内容生成<br>RAG框架<br>LLM（大型语言模型）<br>​赞同 5​<br>​添加评论<br>​分享<br>​喜欢<br>​收藏<br>​申请转载<br>​</p>
+<p>赞同 5</p>
+<p>​<br>分享</p>
+<p>理性发言，友善互动</p>
+<p>还没有评论，发表第一个评论吧<br>推荐阅读<br>大模型的高效训练和部署技术卷出新高度！<br>大模型的高效训练和部署技术卷出新高度！<br>DataF…<br>发表于人工智能算…<br>大模型RAG行业适配过程中的一些思考<br>近段时间接触了较多政务、医疗等行业问答类大模型项目，在沟通中，大部分行业客户均提出了数据安全、数据不出局的业务需求，这就要求我们进行大模型的私有化部署。但是目前，行业客户算力资…</p>
+<p>鱼的记忆<br>当有人问我“什么是大模型”，我顿住了！<br>当有人问我“什么是大模型”，我顿住了！ 前两天，在聊工作的时候，忽然被一个提问打断了思路：“究竟什么是大模型，能不能给一个官方的解释？” 我一下子就顿住了，脑袋里闪过很多想法。 1…</p>
+<p>掘金安东尼<br>发表于歪脖前端<br>大模型<br>1.什么是大模型？ 大模型又可以称为Foundation Model（基石）模型，模型通过亿级的语料或者图像进行知识抽取，学习进而生产了亿级参数的大模型。其实感觉就是自监督学习，利用大量无标签很…</p>
+<p>鹿小臻</p>
+<p>选择语言</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RAG/" rel="tag"># RAG</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/11/24/%E4%B8%80%E6%96%87%E6%A2%B3%E7%90%86%E6%9C%89%E6%95%88%E6%8F%90%E5%8D%87RAG%E6%95%88%E6%9E%9C%E7%9A%84%E6%96%B9%E6%B3%95/" rel="prev" title="一文梳理有效提升RAG效果的方法">
+      <i class="fa fa-chevron-left"></i> 一文梳理有效提升RAG效果的方法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/11/25/%E6%9E%B6%E6%9E%84%E5%B8%88%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%EF%BC%9A%E9%99%90%E6%B5%81%E7%9A%84%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90/" rel="next" title="架构师核心能力：限流的底层原理解析">
+      架构师核心能力：限流的底层原理解析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-RAG%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">1. RAG大模型的架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-RAG%E6%A0%B8%E5%BF%83%E6%AD%A5%E9%AA%A4"><span class="nav-number">2.</span> <span class="nav-text">2. RAG核心步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-Indexing%EF%BC%88%E7%B4%A2%E5%BC%95%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">2.1. Indexing（索引）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-Retrieval%EF%BC%88%E6%A3%80%E7%B4%A2%EF%BC%89%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">2.2. Retrieval（检索）：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-Generation%EF%BC%88%E7%94%9F%E6%88%90%EF%BC%89%EF%BC%9A"><span class="nav-number">2.3.</span> <span class="nav-text">2.3. Generation（生成）：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E5%92%8C%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D"><span class="nav-number">3.</span> <span class="nav-text">3. 关键技术和方法介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-Native-RAG"><span class="nav-number">3.1.</span> <span class="nav-text">3.1. Native RAG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-Advanced-RAG"><span class="nav-number">3.2.</span> <span class="nav-text">3.2. Advanced RAG</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-1-%E9%A2%84%E6%A3%80%E7%B4%A2%E2%80%94%E2%80%94%E9%87%8D%E7%82%B9%E5%9C%A8%E4%BA%8E%E4%BC%98%E5%8C%96%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84%E5%92%8C%E5%8E%9F%E5%A7%8B%E6%9F%A5%E8%AF%A2"><span class="nav-number">3.2.1.</span> <span class="nav-text">3.2.1. 预检索——重点在于优化索引结构和原始查询</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
